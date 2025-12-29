@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <rect fill="#f3f4f6" width="1920" height="1080"/>
+  <rect fill="#e5e7eb" x="0" y="400" width="1920" height="280"/>
+  <circle fill="#0d7377" cx="960" cy="540" r="120" opacity="0.2"/>
+  <text x="960" y="520" font-family="Arial, sans-serif" font-size="48" fill="#6b7280" text-anchor="middle" font-weight="bold">Happy Optics Clinic</text>
+  <text x="960" y="580" font-family="Arial, sans-serif" font-size="24" fill="#9ca3af" text-anchor="middle">Please add clinic.jpg to this folder</text>
+</svg>
+
