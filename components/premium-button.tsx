@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Button, ButtonProps } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { ReactNode, React } from "react";
+import { ReactNode } from "react";
 
 interface PremiumButtonProps extends ButtonProps {
   children: ReactNode;

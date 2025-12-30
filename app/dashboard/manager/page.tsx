@@ -165,38 +165,44 @@ export default function ManagerDashboardPage() {
         <>
           {/* Summary Cards */}
           <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalPatients}</div>
-                <p className="text-xs text-muted-foreground">All registered patients</p>
-              </CardContent>
-            </Card>
+            <Link href="/dashboard/manager/patients" className="block">
+              <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 h-full">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.totalPatients}</div>
+                  <p className="text-xs text-muted-foreground">All registered patients</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Today Appointments</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.todayAppointments}</div>
-                <p className="text-xs text-muted-foreground">Scheduled for today</p>
-              </CardContent>
-            </Card>
+            <Link href="/dashboard/manager/appointments" className="block">
+              <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 h-full">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Today Appointments</CardTitle>
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.todayAppointments}</div>
+                  <p className="text-xs text-muted-foreground">Scheduled for today</p>
+                </CardContent>
+              </Card>
+            </Link>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Monthly Sales</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">${stats.monthlySales.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground">This month's revenue</p>
-              </CardContent>
-            </Card>
+            <Link href="/dashboard/manager/sales" className="block">
+              <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 h-full">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Monthly Sales</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">${stats.monthlySales.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">This month's revenue</p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
 
           {/* Manager-only Analytics Cards */}
@@ -269,7 +275,7 @@ export default function ManagerDashboardPage() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="count"

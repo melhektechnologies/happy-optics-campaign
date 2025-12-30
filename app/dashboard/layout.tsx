@@ -65,6 +65,11 @@ export default function DashboardLayout({
     router.push("/auth/login");
   };
 
+  // If this is a manager route, don't render the parent layout (manager has its own layout)
+  if (pathname?.startsWith("/dashboard/manager")) {
+    return <>{children}</>;
+  }
+
   const navItems = (userRole === "manager") ? managerNavItems : staffNavItems;
 
   return (

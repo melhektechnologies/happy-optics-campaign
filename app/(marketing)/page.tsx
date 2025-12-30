@@ -389,7 +389,6 @@ export default function HomePage() {
                       initial={{ opacity: 0, scale: 0.8 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.6, delay: 0.2 }}
                       animate={{
                         scale: [1, 1.15, 1],
                         rotate: [0, 10, -10, 0],
@@ -398,6 +397,7 @@ export default function HomePage() {
                         duration: 5,
                         repeat: Infinity,
                         ease: "easeInOut",
+                        delay: 0.2,
                       }}
                     >
                       <motion.div 

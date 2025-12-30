@@ -21,7 +21,7 @@ const appointmentSchema = z.object({
   phone: z.string().min(10, "Please enter a valid phone number"),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   branch: z.enum(["head-office", "bole", "kera", "bethzatha"], {
-    required_error: "Please select a branch",
+    message: "Please select a branch",
   }),
   preferred_date: z.string().min(1, "Please select a date"),
   preferred_time: z.string().min(1, "Please select a time"),
@@ -107,7 +107,7 @@ function BookPageContent() {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {};
-        error.errors.forEach((err) => {
+        error.issues.forEach((err) => {
           if (err.path[0]) {
             fieldErrors[err.path[0].toString()] = err.message;
           }
