@@ -53,14 +53,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsMobileOpen(false)}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all ${
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300 group ${
                   isActive 
-                    ? "bg-[#012a2d] text-white shadow-md shadow-[#012a2d]/20" 
-                    : "text-slate-500 hover:text-[#012a2d] hover:bg-slate-100"
+                    ? "bg-nova-pink text-white shadow-[0_0_20px_rgba(236,72,153,0.3)] scale-[1.02]" 
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
                 }`}
               >
-                <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400"}`} />
-                {link.name}
+                <Icon className={`h-5 w-5 transition-colors ${isActive ? "text-white" : "text-slate-500 group-hover:text-nova-pink"}`} />
+                <span className="font-bold tracking-tight">{link.name}</span>
               </Link>
             );
           })}
@@ -86,35 +86,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   return (
-    <div className="grid min-h-screen w-full lg:grid-cols-[260px_1fr] bg-slate-50/50">
+    <div className="grid min-h-screen w-full lg:grid-cols-[260px_1fr] bg-obsidian-950 premium-grid selection:bg-nova-pink/30">
       {/* Desktop Sidebar */}
-      <div className="hidden border-r bg-white lg:block shadow-sm z-10">
-        <SidebarContent />
+      <div className="hidden lg:block z-20">
+        <div className="h-full nova-glass border-r border-white/5 m-4 rounded-3xl overflow-hidden animate-nova-entry">
+          <SidebarContent />
+        </div>
       </div>
 
-      <div className="flex flex-col">
+      <div className="flex flex-col relative z-10">
         {/* Mobile Header */}
-        <header className="flex h-16 items-center gap-4 border-b bg-white px-6 lg:hidden shadow-sm z-10">
+        <header className="flex h-16 items-center gap-4 px-6 lg:hidden nova-glass m-4 rounded-2xl border-white/5">
           <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden text-slate-600">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-72 p-0 bg-white">
+            <SheetTrigger
+              render={
+                <Button variant="ghost" size="icon" className="lg:hidden text-slate-400 hover:text-white">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle navigation menu</span>
+                </Button>
+              }
+            />
+            <SheetContent side="left" className="w-72 p-0 bg-obsidian-900 border-white/10">
               <SidebarContent />
             </SheetContent>
           </Sheet>
-          <div className="flex items-center gap-2 font-bold text-lg text-[#010133]">
-            <ShoppingCart className="h-5 w-5 text-[#012a2d]" />
-            <span>SuperNova</span>
+          <div className="flex items-center gap-2 font-black text-lg text-white">
+            <ShoppingCart className="h-5 w-5 text-nova-pink" />
+            <span className="tracking-tighter">SuperNova</span>
           </div>
         </header>
 
         {/* Main Content Area */}
         <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
-          <div className="mx-auto w-full max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl animate-nova-entry">
             {children}
           </div>
         </main>

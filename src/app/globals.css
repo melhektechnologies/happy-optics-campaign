@@ -1,83 +1,131 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #ec4899; /* Pink-500 accent for Supermarket vibrancy */
-  --color-secondary: #0f172a;
-  --color-accent: #10b981;
-  --color-obsidian: #020617;
-  --color-glass: rgba(15, 23, 42, 0.6);
+  /* Core Obsidian Palette */
+  --color-obsidian-950: #020204;
+  --color-obsidian-900: #050508;
+  --color-obsidian-800: #0A0A0F;
+  --color-obsidian-700: #12121A;
+  
+  /* Electric Accents */
+  --color-nova-pink: #EC4899;
+  --color-nova-emerald: #10B981;
+  --color-nova-gold: #C89A32;
+  --color-nova-cyan: #06B6D4;
+  
+  /* Semantic Mappings */
+  --color-primary: var(--color-nova-pink);
+  --color-success: var(--color-nova-emerald);
+  --color-luxury: var(--color-nova-gold);
+  
+  /* Typography Scale */
+  --font-syne: "Syne", sans-serif;
+  --font-inter: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  /* Shadows (Glass Elevators) */
+  --shadow-nova-soft: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  --shadow-nova-glow: 0 0 20px rgba(236, 72, 153, 0.2);
+  --shadow-nova-emerald: 0 0 20px rgba(16, 185, 129, 0.2);
 }
 
 @layer base {
   :root {
-    --background: #020617;
-    --foreground: #f8fafc;
+    --background: var(--color-obsidian-950);
+    --foreground: #F8FAFC;
+    --border: rgba(255, 255, 255, 0.08);
   }
 
   body {
     background: var(--background);
     color: var(--foreground);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-inter);
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
-  h1, h2, h3, h4, .font-syne {
-    font-family: 'Syne', sans-serif;
-  }
-
-  .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+  h1, h2, h3, .font-heading {
+    font-family: var(--font-syne);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
   }
 }
 
 @layer utilities {
-  .glass {
-    @apply backdrop-blur-xl bg-slate-900/40 border border-white/5;
+  /* Glassmorphism Classes */
+  .nova-glass {
+    @apply backdrop-blur-xl bg-obsidian-900/40 border border-white/10;
+    box-shadow: var(--shadow-nova-soft);
   }
 
-  .glass-pink {
-    @apply backdrop-blur-xl bg-pink-500/5 border border-pink-500/10;
+  .nova-glass-pink {
+    @apply backdrop-blur-xl bg-nova-pink/5 border border-nova-pink/20;
+    box-shadow: var(--shadow-nova-glow);
   }
 
-  .text-glow-pink {
-    text-shadow: 0 0 20px rgba(236, 72, 153, 0.4);
+  /* Animated Borders */
+  .nova-border-gradient {
+    border: 1px solid transparent;
+    background: linear-gradient(var(--color-obsidian-900), var(--color-obsidian-900)) padding-box,
+                linear-gradient(45deg, var(--color-nova-pink), var(--color-nova-cyan)) border-box;
   }
 
-  .text-glow-emerald {
-    text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  /* Interactive Scales */
+  .nova-hover-zoom {
+    @apply transition-all duration-300;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .nova-hover-zoom:hover {
+    @apply scale-[1.02] -translate-y-1;
   }
 
+  /* Text Glows */
+  .text-glow {
+    text-shadow: 0 0 15px currentColor;
+  }
+
+  /* Grid Backgrounds */
   .premium-grid {
     background-image: 
-      radial-gradient(circle at 2px 2px, rgba(255,255,255,0.02) 1px, transparent 0);
-    background-size: 40px 40px;
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 32px 32px;
   }
+}
 
-  .shadow-pink {
-    box-shadow: 0 0 30px rgba(236, 72, 153, 0.15);
+/* Global Animations */
+@keyframes nova-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-nova-entry {
+  animation: nova-fade-in-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
 /* Custom Selection */
 ::selection {
-  background: rgba(236, 72, 153, 0.3);
+  background: rgba(236, 72, 153, 0.4);
   color: #fff;
 }
 
-/* Smooth Scrollbar */
+/* Scrollbar Aesthetics */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
-
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--color-obsidian-950);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  background: var(--color-obsidian-700);
+  border-radius: 2px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(236, 72, 153, 0.2);
+  background: var(--color-nova-pink);
 }

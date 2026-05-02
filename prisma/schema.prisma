@@ -21,36 +21,44 @@ enum Role {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  password  String
-  firstName String
-  lastName  String
-  phone     String?
-  role      Role      @default(CASHIER)
-  branchId  String?
-  branch    Branch?   @relation(fields: [branchId], references: [id])
-  sales     Sale[]
-  auditLogs AuditLog[]
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  password         String
+  firstName        String
+  lastName         String
+  phone            String?
+  role             Role      @default(CASHIER)
+  branchId         String?
+  branch           Branch?   @relation(fields: [branchId], references: [id])
+  sales            Sale[]
+  auditLogs        AuditLog[]
+  twoFactorEnabled Boolean   @default(false)
+  lastLogin        DateTime?
+  deletedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   @@index([email])
 }
 
 model Branch {
-  id        String      @id @default(cuid())
-  name      String
-  location  String
-  phone     String?
-  email     String?
-  users     User[]
-  inventory Inventory[]
-  sales     Sale[]
-  deletedAt DateTime?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id           String      @id @default(cuid())
+  name         String
+  location     String
+  phone        String?
+  email        String?
+  timezone     String      @default("UTC")
+  currencyCode String      @default("USD")
+  isWarehouse  Boolean     @default(false)
+  parentId     String?     // For sub-branches/kiosks
+  parent       Branch?     @relation("BranchToBranch", fields: [parentId], references: [id])
+  children     Branch[]    @relation("BranchToBranch")
+  users        User[]
+  inventory    Inventory[]
+  sales        Sale[]
+  deletedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 }
 
 model Category {
@@ -112,15 +120,19 @@ model Inventory {
 
 model Sale {
   id            String        @id @default(cuid())
+  receiptNumber String        @unique // Sequential per branch: BR-001-SALE-10023
   branchId      String
   branch        Branch        @relation(fields: [branchId], references: [id])
   cashierId     String
   cashier       User          @relation(fields: [cashierId], references: [id])
   totalAmount   Float
+  netAmount     Float         @default(0)
+  taxAmount     Float         @default(0)
   discount      Float         @default(0)
   tax           Float         @default(0)
   paymentMethod PaymentMethod
   status        SaleStatus    @default(COMPLETED)
+  syncedToCloud Boolean       @default(true) // For offline-first sync tracking
   items         SaleItem[]
   metadata      Json?         // For storing custom receipt data or promotion info
   createdAt     DateTime      @default(now())
@@ -167,4 +179,24 @@ model AuditLog {
 
   @@index([userId, createdAt])
 }
+model Transaction {
+  id            String   @id @default(cuid())
+  type          TxType
+  amount        Float
+  referenceId   String?  // Link to Sale or PurchaseOrder
+  status        TxStatus @default(PENDING)
+  createdAt     DateTime @default(now())
+}
 
+enum TxType { 
+  INCOME 
+  EXPENSE 
+  REFUND 
+  INTERNAL_TRANSFER 
+}
+
+enum TxStatus { 
+  PENDING 
+  COMPLETED 
+  FAILED 
+}

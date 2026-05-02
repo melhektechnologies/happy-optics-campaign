@@ -111,11 +111,13 @@ export default function UsersPage() {
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-100">
-                        <MoreHorizontal className="h-4 w-4 text-slate-500" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-100">
+                          <MoreHorizontal className="h-4 w-4 text-slate-500" />
+                        </Button>
+                      }
+                    />
                     <DropdownMenuContent align="end" className="bg-white border-slate-200">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem>Edit Profile</DropdownMenuItem>

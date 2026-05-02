@@ -16,18 +16,28 @@ export async function createSale(data: {
       // 1. Calculate totals
       const subtotal = data.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       const discount = data.discount || 0;
-      const tax = data.tax || (subtotal * 0.15); // standard 15% tax
-      const totalAmount = subtotal - discount + tax;
+      const taxRate = data.tax || 0.15; // 15% VAT
+      const taxAmount = subtotal * taxRate;
+      const totalAmount = subtotal - discount + taxAmount;
+      const netAmount = subtotal - discount;
 
-      // 2. Create the Sale record
+      // 2. Generate Receipt Number (Branch Code + Timestamp + Random)
+      const branch = await tx.branch.findUnique({ where: { id: data.branchId } });
+      const branchPrefix = branch?.name.substring(0, 3).toUpperCase() || "BR";
+      const receiptNumber = `${branchPrefix}-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 1000)}`;
+
+      // 3. Create the Sale record
       const sale = await tx.sale.create({
         data: {
+          receiptNumber,
           branchId: data.branchId,
           cashierId: data.cashierId,
           paymentMethod: data.paymentMethod,
           totalAmount,
+          netAmount,
+          taxAmount,
           discount,
-          tax,
+          tax: taxRate,
           status: "COMPLETED",
           items: {
             create: data.items.map(item => ({
@@ -39,7 +49,7 @@ export async function createSale(data: {
         }
       });
 
-      // 3. Update inventory & Check stock
+      // 4. Update inventory & Check stock
       for (const item of data.items) {
         const inventory = await tx.inventory.findUnique({
           where: {
@@ -64,14 +74,24 @@ export async function createSale(data: {
         });
       }
 
-      // 4. Create Audit Log
+      // 5. Create Transaction record for accounting
+      await tx.transaction.create({
+        data: {
+          type: "INCOME",
+          amount: totalAmount,
+          referenceId: sale.id,
+          status: "COMPLETED"
+        }
+      });
+
+      // 6. Create Audit Log
       await tx.auditLog.create({
         data: {
           userId: data.cashierId,
           action: "SALE_COMPLETED",
           entity: "Sale",
           entityId: sale.id,
-          newData: JSON.stringify({ total: totalAmount, itemsCount: data.items.length })
+          newData: JSON.stringify({ total: totalAmount, receiptNumber })
         }
       });
 
