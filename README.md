@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SuperNova - Smart Supermarket Management System
 
-## Getting Started
+An elite, production-ready, enterprise-grade SaaS platform built for modern hypermarkets, wholesale distributors, and multi-branch retail chains.
 
-First, run the development server:
+## 🚀 Overview
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+SuperNova is designed to operate as the intelligent operating system for retail. It seamlessly connects point-of-sale systems, multi-branch inventory, employee management, and an e-commerce storefront into a single, beautiful, and highly scalable cloud architecture.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### ✨ Key Features Built
+- **Executive Dashboard (`/dashboard`)**: Real-time KPI metrics, Recharts integration, and AI-driven predictive insights.
+- **Ultra-Fast POS (`/dashboard/pos`)**: High-performance cashier terminal with real-time cart states, barcode scanning readiness, and optimized checkout flow.
+- **Intelligent Inventory (`/dashboard/inventory`)**: Cross-branch tracking, low-stock alerts, and advanced data-table filtering.
+- **Product Information Management (`/dashboard/products`)**: Centralized SKU tracking, supplier linkage, and profit margin calculators.
+- **RBAC & Staffing (`/dashboard/users`)**: Deep role-based access control (Super Admin, Manager, Cashier, etc.) and branch assignment.
+- **Multi-Branch Operations (`/dashboard/branches`)**: Centralized view of all store performance, revenues, and employee counts.
+- **Enterprise Reporting (`/dashboard/reports`)**: Complex financial charting, correlation graphs, and automated tax reporting.
+- **B2C Storefront (`/store`)**: Public-facing e-commerce UI optimized for customer grocery shopping and delivery.
+- **Secure Authentication (`/login`)**: High-end enterprise login interface.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Technology Stack
+- **Frontend**: React 19, Next.js 15 (App Router)
+- **Styling**: Tailwind CSS v4, Framer Motion, Shadcn UI
+- **Data Visualization**: Recharts
+- **Database Architecture**: PostgreSQL mapped with Prisma ORM
+- **State Management**: React `useState` / `Zustand`
+- **Iconography**: Lucide React
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📦 Getting Started
 
-## Learn More
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. **Database Setup**
+   Configure your `.env` file with your PostgreSQL connection string:
+   ```env
+   DATABASE_URL="postgresql://user:password@localhost:5432/supernova?schema=public"
+   ```
+   Run the Prisma migration:
+   ```bash
+   npx prisma db push
+   # or
+   npx prisma migrate dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Run the Development Server**
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎨 Design System
+The UI/UX reflects a "billion-dollar SaaS" aesthetic:
+- **Glassmorphism** and subtle background blurs.
+- **Typography**: Inter / Geist font family.
+- **Color Palette**: Deep Corporate Blue (`#010133`), Dark Cyan (`#012a2d`), and Luxury Gold (`#C89A32`).
 
-## Deploy on Vercel
+## 🛡️ Production Readiness Checklist
+- [x] Responsive Mobile-First Design
+- [x] Complex Relational DB Schema (`schema.prisma`)
+- [x] Component Library Intialized (Shadcn)
+- [x] Database Connection Singleton (`lib/prisma.ts`)
+- [ ] Implement NextAuth.js for JWT validation
+- [ ] Connect Stripe Webhooks
+- [ ] Setup Docker Containerization
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Built by Melhek Technologies | Enterprise Software Division*

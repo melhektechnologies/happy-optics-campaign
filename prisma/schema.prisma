@@ -1,0 +1,170 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  BRANCH_MANAGER
+  CASHIER
+  INVENTORY_MANAGER
+  SUPPLIER
+  ACCOUNTANT
+  WAREHOUSE_STAFF
+  DELIVERY_STAFF
+  CUSTOMER
+  AUDITOR
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  firstName String
+  lastName  String
+  phone     String?
+  role      Role      @default(CASHIER)
+  branchId  String?
+  branch    Branch?   @relation(fields: [branchId], references: [id])
+  sales     Sale[]
+  auditLogs AuditLog[]
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([email])
+}
+
+model Branch {
+  id        String      @id @default(cuid())
+  name      String
+  location  String
+  phone     String?
+  email     String?
+  users     User[]
+  inventory Inventory[]
+  sales     Sale[]
+  deletedAt DateTime?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  products    Product[]
+  deletedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  sku         String      @unique
+  barcode     String?     @unique
+  name        String
+  description String?
+  price       Float
+  cost        Float
+  categoryId  String
+  category    Category    @relation(fields: [categoryId], references: [id])
+  supplierId  String?
+  supplier    Supplier?   @relation(fields: [supplierId], references: [id])
+  inventory   Inventory[]
+  saleItems   SaleItem[]
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([sku, barcode])
+}
+
+model Supplier {
+  id        String    @id @default(cuid())
+  name      String
+  contact   String?
+  email     String?
+  phone     String?
+  address   String?
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Inventory {
+  id        String    @id @default(cuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id])
+  branchId  String
+  branch    Branch    @relation(fields: [branchId], references: [id])
+  quantity  Int       @default(0)
+  minStock  Int       @default(10)
+  updatedAt DateTime  @updatedAt
+
+  @@unique([productId, branchId])
+  @@index([branchId])
+}
+
+model Sale {
+  id            String        @id @default(cuid())
+  branchId      String
+  branch        Branch        @relation(fields: [branchId], references: [id])
+  cashierId     String
+  cashier       User          @relation(fields: [cashierId], references: [id])
+  totalAmount   Float
+  discount      Float         @default(0)
+  tax           Float         @default(0)
+  paymentMethod PaymentMethod
+  status        SaleStatus    @default(COMPLETED)
+  items         SaleItem[]
+  metadata      Json?         // For storing custom receipt data or promotion info
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([branchId, createdAt])
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE_MONEY
+}
+
+enum SaleStatus {
+  COMPLETED
+  REFUNDED
+  ON_HOLD
+  CANCELLED
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  saleId    String
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float // Price at the time of sale
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String   // e.g., "PRICE_UPDATE", "STOCK_ADJUSTMENT"
+  entity    String   // e.g., "Product", "Inventory"
+  entityId  String
+  oldData   Json?
+  newData   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
