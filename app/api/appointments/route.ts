@@ -151,7 +151,12 @@ export async function GET(request: NextRequest) {
   try {
     // Check authentication and role
     const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
+    let token = authHeader?.replace("Bearer ", "");
+    
+    // Fallback to cookie
+    if (!token) {
+      token = request.cookies.get("auth_token")?.value;
+    }
     
     let userBranch: string | null = null;
     let userRole: string | null = null;
@@ -162,7 +167,8 @@ export async function GET(request: NextRequest) {
         userRole = decoded.role;
         userBranch = decoded.branch;
       } catch (error) {
-        // Token invalid, continue without filtering (for backward compatibility)
+        console.error("JWT verification failed:", error);
+        return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
       }
     }
     

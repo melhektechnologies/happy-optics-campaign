@@ -100,23 +100,11 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // First time login - set password (allow any password on first login)
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      const { error: updateError } = await supabaseAdmin
-        .from("staff")
-        .update({ password_hash: hashedPassword })
-        .eq("id", staff.id);
-      
-      if (updateError) {
-        console.error("Error setting password:", updateError);
-        return NextResponse.json(
-          { error: "Failed to set password. Please try again." },
-          { status: 500 }
-        );
-      }
-      
-      passwordValid = true;
+      // Security: Do not allow setting password on first login in production
+      return NextResponse.json(
+        { error: "Account not fully set up. Please contact the administrator." },
+        { status: 403 }
+      );
     }
 
     if (!passwordValid) {
@@ -126,7 +114,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate JWT token directly (no OTP needed)
+    // Generate JWT token
     const token = jwt.sign(
       {
         id: staff.id,
@@ -138,13 +126,26 @@ export async function POST(request: NextRequest) {
       { expiresIn: "7d" }
     );
 
-    return NextResponse.json({
-      token,
+    // Set HTTP-only cookie for security
+    const response = NextResponse.json({
+      success: true,
       role: staff.role,
       email: staff.email,
       branch: staff.branch,
       name: staff.full_name,
     });
+
+    response.cookies.set({
+      name: "auth_token",
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     const errorMessage = error instanceof Error ? error.message : String(error);

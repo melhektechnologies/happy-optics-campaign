@@ -5,8 +5,14 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-producti
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
+    // Check cookie first (preferred)
+    let token = request.cookies.get("auth_token")?.value;
+    
+    // Fallback to header
+    if (!token) {
+      const authHeader = request.headers.get("authorization");
+      token = authHeader?.replace("Bearer ", "");
+    }
 
     if (!token) {
       return NextResponse.json({ valid: false }, { status: 401 });

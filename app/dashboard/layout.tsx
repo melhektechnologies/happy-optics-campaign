@@ -58,7 +58,12 @@ export default function DashboardLayout({
     }
   }, [router]);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_role");
     localStorage.removeItem("user_email");
