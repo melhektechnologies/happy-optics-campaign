@@ -2,29 +2,41 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
+// Validation Schema for Login
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  expectedBranch: z.string().optional(),
+});
+
 export async function POST(request: NextRequest) {
   try {
-    // Check if Supabase is configured
+    // 1. Infrastructure Validation
     if (!supabaseAdmin) {
       return NextResponse.json(
-        { error: "Server configuration error: Supabase is not configured. Please check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables." },
+        { error: "Protocol Error: Central database node is offline." },
         { status: 500 }
       );
     }
 
-    const { email, password, expectedBranch } = await request.json();
+    // 2. Payload Validation
+    const body = await request.json();
+    const validated = loginSchema.safeParse(body);
 
-    if (!email || !password) {
+    if (!validated.success) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "Validation Failure: " + validated.error.errors[0].message },
         { status: 400 }
       );
     }
 
-    // Check if user exists in staff table
+    const { email, password, expectedBranch } = validated.data;
+
+    // 3. User Identity Retrieval
     const { data: staff, error: staffError } = await supabaseAdmin
       .from("staff")
       .select("*")
@@ -32,89 +44,70 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (staffError) {
-      console.error("Database error:", staffError);
-      console.error("Error code:", staffError.code);
-      console.error("Error details:", JSON.stringify(staffError, null, 2));
-      
-      // Provide more helpful error messages
-      if (staffError.code === "PGRST116" || staffError.message?.includes("relation") || staffError.message?.includes("does not exist")) {
-        return NextResponse.json(
-          { error: "Staff table does not exist. Please run the database schema SQL to create the staff table." },
-          { status: 500 }
-        );
-      }
-      
+      console.error("[Auth] Database sync error:", staffError);
       return NextResponse.json(
-        { error: `Database error: ${staffError.message || "Unknown error"}. Please check your Supabase configuration and ensure the staff table exists.` },
-        { status: 500 }
+        { error: "Identification Failure: The provided credentials do not match our secure records." },
+        { status: 401 }
       );
     }
 
     if (!staff) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Access Denied: Intelligence node not found." },
         { status: 401 }
       );
     }
 
-    // Validate manager login
+    // 4. Role & Branch Authorization
     if (expectedBranch === "manager" && staff.role !== "manager") {
       return NextResponse.json(
-        { error: "This account is not authorized as a manager" },
+        { error: "Authorization Protocol: Managerial clearance required." },
         { status: 403 }
       );
     }
 
-    // Validate branch if expectedBranch is provided (staff login)
     if (expectedBranch && expectedBranch !== "manager" && staff.branch !== expectedBranch) {
       return NextResponse.json(
-        { error: "You do not have access to this branch" },
+        { error: "Authorization Protocol: Local branch clearance required." },
         { status: 403 }
       );
     }
 
-    // Check password using bcrypt
+    // 5. Secure Cryptographic Verification
     let passwordValid = false;
 
     if (staff.password_hash) {
-      // Check if password_hash is a valid bcrypt hash (starts with $2a$, $2b$, or $2y$)
       const isBcryptHash = /^\$2[ayb]\$/.test(staff.password_hash);
       
       if (isBcryptHash) {
-        // Valid bcrypt hash - compare normally
         passwordValid = await bcrypt.compare(password, staff.password_hash);
       } else {
-        // Plain text password stored (legacy/migration issue) - compare directly
-        // Then update to bcrypt hash
+        // Legacy migration protocol
         if (password === staff.password_hash) {
           passwordValid = true;
-          // Update to bcrypt hash
           const saltRounds = 10;
           const hashedPassword = await bcrypt.hash(password, saltRounds);
           await supabaseAdmin
             .from("staff")
             .update({ password_hash: hashedPassword })
             .eq("id", staff.id);
-        } else {
-          passwordValid = false;
         }
       }
     } else {
-      // Security: Do not allow setting password on first login in production
       return NextResponse.json(
-        { error: "Account not fully set up. Please contact the administrator." },
+        { error: "Security Lock: Account setup incomplete. Please contact the security administrator." },
         { status: 403 }
       );
     }
 
     if (!passwordValid) {
       return NextResponse.json(
-        { error: "Invalid email or password" },
+        { error: "Identification Failure: Invalid cryptographic sequence." },
         { status: 401 }
       );
     }
 
-    // Generate JWT token
+    // 6. Secure Token Generation
     const token = jwt.sign(
       {
         id: staff.id,
@@ -126,11 +119,10 @@ export async function POST(request: NextRequest) {
       { expiresIn: "7d" }
     );
 
-    // Set HTTP-only cookie for security
+    // 7. Encrypted Response Packaging
     const response = NextResponse.json({
       success: true,
       role: staff.role,
-      email: staff.email,
       branch: staff.branch,
       name: staff.full_name,
     });
@@ -141,36 +133,18 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: 60 * 60 * 24 * 7,
       path: "/",
     });
 
     return response;
   } catch (error) {
-    console.error("Login error:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error("Full error details:", errorMessage);
-    
-    // Check if it's a fetch/network error
-    if (errorMessage.includes("fetch failed") || errorMessage.includes("ECONNREFUSED") || errorMessage.includes("network")) {
-      return NextResponse.json(
-        { error: "Cannot connect to database. Please check your Supabase configuration and environment variables (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)." },
-        { status: 500 }
-      );
-    }
-    
-    // Check if it's a missing environment variable
-    if (errorMessage.includes("Missing") || errorMessage.includes("environment variable")) {
-      return NextResponse.json(
-        { error: "Server configuration error. Please check environment variables are set correctly." },
-        { status: 500 }
-      );
-    }
-    
+    console.error("[Auth] Fatal process error:", error);
     return NextResponse.json(
-      { error: `Login failed: ${errorMessage}` },
+      { error: "System Error: Authentication process desynchronized." },
       { status: 500 }
     );
   }
 }
+
 
