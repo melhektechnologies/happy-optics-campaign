@@ -1,21 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/server";
 
-export async function GET() {
-  try {
-    const { count, error } = await supabaseAdmin
-      .from("patients")
-      .select("*", { count: "exact", head: true });
+// Patient records are not branch-scoped in the current schema; a patient
+// can be served by any branch. Any authenticated staff member can see the
+// total count.
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
 
-    if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json({ count: 0 });
-    }
+  const { count, error } = await supabaseAdmin
+    .from("patients")
+    .select("*", { count: "exact", head: true });
 
-    return NextResponse.json({ count: count || 0 });
-  } catch (error) {
-    console.error("Error counting patients:", error);
+  if (error) {
+    console.error("[patients/count] error:", error);
     return NextResponse.json({ count: 0 });
   }
+  return NextResponse.json({ count: count || 0 });
 }
-

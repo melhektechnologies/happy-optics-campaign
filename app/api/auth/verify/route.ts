@@ -1,27 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { getCurrentUser } from "@/lib/auth/server";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-
+// Light cookie-only check used by the AuthGuard component to bounce
+// unauthenticated users back to /auth/login. The actual identity payload
+// lives at /api/auth/me.
 export async function GET(request: NextRequest) {
-  try {
-    // Check cookie first (preferred)
-    let token = request.cookies.get("auth_token")?.value;
-    
-    // Fallback to header
-    if (!token) {
-      const authHeader = request.headers.get("authorization");
-      token = authHeader?.replace("Bearer ", "");
-    }
-
-    if (!token) {
-      return NextResponse.json({ valid: false }, { status: 401 });
-    }
-
-    jwt.verify(token, JWT_SECRET);
-    return NextResponse.json({ valid: true });
-  } catch (error) {
-    return NextResponse.json({ valid: false }, { status: 401 });
+  const user = await getCurrentUser(request);
+  if (!user) {
+    return NextResponse.json(
+      { valid: false, error: "Unauthorized", code: "unauthorized" },
+      { status: 401 }
+    );
   }
+  return NextResponse.json({ valid: true });
 }
-

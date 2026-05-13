@@ -63,13 +63,10 @@ export default function BranchSettingsPage() {
     setPasswordLoading(true);
 
     try {
-      const token = localStorage.getItem("auth_token");
       const response = await fetch("/api/auth/change-password", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword,

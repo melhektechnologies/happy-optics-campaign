@@ -1,47 +1,48 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/server";
+import { internalError } from "@/lib/api/errors";
 
-// This endpoint syncs patients from appointments
-// When an appointment is made, automatically create a patient record if it doesn't exist
-export async function POST() {
+// Bulk backfill: copies any appointment whose phone number isn't yet in
+// `patients` into the patients table. Manager-only — previously this was
+// public and would let anyone read every appointment's PII.
+export async function POST(request: NextRequest) {
+  const auth = await requireRole(request, "manager");
+  if (!auth.ok) return auth.response;
+
   try {
-    // Get all appointments
     const { data: appointments, error: aptError } = await supabaseAdmin
       .from("public_appointments")
       .select("full_name, phone, email");
 
     if (aptError) {
-      console.error("Error fetching appointments:", aptError);
-      return NextResponse.json(
-        { error: "Failed to fetch appointments" },
-        { status: 500 }
-      );
+      console.error("[sync-patients] fetch appointments:", aptError);
+      return internalError("Failed to fetch appointments");
     }
-
     if (!appointments || appointments.length === 0) {
-      return NextResponse.json({ message: "No appointments to sync", synced: 0 });
+      return NextResponse.json({ synced: 0, message: "No appointments to sync" });
     }
 
-    // Get existing patients
     const { data: existingPatients, error: patientError } = await supabaseAdmin
       .from("patients")
-      .select("phone, full_name");
+      .select("phone");
 
     if (patientError) {
-      console.error("Error fetching patients:", patientError);
-      return NextResponse.json(
-        { error: "Failed to fetch patients" },
-        { status: 500 }
-      );
+      console.error("[sync-patients] fetch patients:", patientError);
+      return internalError("Failed to fetch patients");
     }
 
-    type PatientRow = { phone: string | null; full_name?: string | null };
+    type PatientRow = { phone: string | null };
     type AppointmentRow = {
       phone: string | null;
       full_name: string | null;
       email: string | null;
     };
-    type NewPatient = { full_name: string | null; phone: string; email: string | null };
+    type NewPatient = {
+      full_name: string | null;
+      phone: string;
+      email: string | null;
+    };
 
     const existingPhones = new Set(
       ((existingPatients ?? []) as PatientRow[])
@@ -49,7 +50,6 @@ export async function POST() {
         .filter((p): p is string => Boolean(p))
     );
 
-    // Create patients from appointments that don't exist
     const newPatients: NewPatient[] = (appointments as AppointmentRow[])
       .filter(
         (apt): apt is AppointmentRow & { phone: string } =>
@@ -61,40 +61,26 @@ export async function POST() {
         email: apt.email || null,
       }));
 
-    // Remove duplicates by phone
     const uniquePatients: NewPatient[] = Array.from(
       new Map(newPatients.map((p) => [p.phone.toLowerCase(), p])).values()
     );
 
     if (uniquePatients.length === 0) {
-      return NextResponse.json({ message: "All patients already exist", synced: 0 });
+      return NextResponse.json({ synced: 0, message: "All patients already exist" });
     }
 
-    // Insert new patients
-    const { data, error } = await supabaseAdmin
+    const { error } = await supabaseAdmin
       .from("patients")
       .insert(uniquePatients)
-      .select();
-
+      .select("id");
     if (error) {
-      console.error("Error creating patients:", error);
-      return NextResponse.json(
-        { error: "Failed to create patients" },
-        { status: 500 }
-      );
+      console.error("[sync-patients] insert error:", error);
+      return internalError("Failed to create patients");
     }
 
-    return NextResponse.json({
-      message: `Synced ${uniquePatients.length} patients from appointments`,
-      synced: uniquePatients.length,
-      data,
-    });
-  } catch (error) {
-    console.error("Sync error:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred" },
-      { status: 500 }
-    );
+    return NextResponse.json({ synced: uniquePatients.length });
+  } catch (err) {
+    console.error("[sync-patients] unexpected error:", err);
+    return internalError();
   }
 }
-

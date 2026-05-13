@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
+import { clientLogout } from "@/lib/auth-client";
 import { 
   LayoutDashboard, 
   Users, 
@@ -42,44 +44,41 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
   const pathname = usePathname();
   const router = useRouter();
-
-  useEffect(() => {
-    // One-shot client-only sync from localStorage. This is the intended
-    // use of useEffect (reading state owned by an external system).
-    const role = localStorage.getItem("user_role") || "";
-    const email = localStorage.getItem("user_email") || "";
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
-    setUserRole(role);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
-    setUserEmail(email);
-
-    if (!role) {
-      router.push("/auth/login");
-    }
-  }, [router]);
+  const { user, loading } = useCurrentUser();
 
   const handleSignOut = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("user_email");
+    await clientLogout();
     router.push("/auth/login");
   };
 
-  // If this is a manager route, don't render the parent layout (manager has its own layout)
+  // /dashboard/manager has its own layout that uses useCurrentUser too.
+  // Render its children directly without our chrome.
   if (pathname?.startsWith("/dashboard/manager")) {
     return <>{children}</>;
   }
 
-  const navItems = (userRole === "manager") ? managerNavItems : staffNavItems;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    router.push("/auth/login");
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">Redirecting…</p>
+      </div>
+    );
+  }
+
+  const userRole = user.role;
+  const userEmail = user.email;
+  const navItems = userRole === "manager" ? managerNavItems : staffNavItems;
 
   return (
     <div className="min-h-screen bg-muted/30">

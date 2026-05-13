@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import twilio, { type Twilio } from "twilio";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/server";
+import { internalError } from "@/lib/api/errors";
+import { parseJsonBody, z } from "@/lib/api/validate";
 
-// Twilio client (only initialize if credentials are available)
+// Triggers paid Twilio SMS. Previously public — anyone with `curl` could
+// SMS-bomb arbitrary phone numbers on the clinic's dime. Now manager-only.
+
 let twilioClient: Twilio | null = null;
 try {
   if (
@@ -16,121 +21,86 @@ try {
     );
   }
 } catch {
-  console.log("Twilio not configured, reminders will be logged only");
+  // Misconfigured Twilio creds — fall through to the "logged only" path.
 }
+
+const reminderSchema = z.object({
+  appointmentId: z.string().uuid(),
+  phone: z.string().min(7).max(30),
+  name: z.string().min(1).max(120),
+  date: z.string().min(1),
+  time: z.string().min(1),
+  branch: z.string().min(1).max(60),
+});
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { appointmentId, phone, name, date, time, branch } = body;
+  const auth = await requireRole(request, "manager");
+  if (!auth.ok) return auth.response;
 
-    const formattedDate = new Date(date).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
+  const body = await parseJsonBody(request, reminderSchema);
+  if (!body.ok) return body.response;
+  const { appointmentId, phone, name, date, time, branch } = body.data;
 
-    const reminderMessage = `Hello ${name}, this is a reminder from Happy Optics Optometry Clinic. Your appointment is scheduled for ${formattedDate} at ${time} at ${branch}. Please call us at +251-115584293 if you need to reschedule. Thank you!`;
+  const formattedDate = new Date(date).toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const reminderMessage = `Hello ${name}, this is a reminder from Happy Optics Optometry Clinic. Your appointment is scheduled for ${formattedDate} at ${time} at ${branch}. Please call us at +251-115584293 if you need to reschedule. Thank you!`;
 
-    let smsStatus = "logged";
-    let smsSid = null;
+  let smsStatus: "sent" | "failed" | "logged" = "logged";
+  let smsSid: string | null = null;
 
-    // Send SMS via Twilio if configured
-    if (twilioClient && process.env.TWILIO_PHONE_NUMBER) {
-      try {
-        // Format phone number (add country code if needed)
-        let formattedPhone = phone.trim();
-        if (!formattedPhone.startsWith("+")) {
-          // Assume Ethiopian number, add +251
-          formattedPhone = formattedPhone.startsWith("0")
-            ? `+251${formattedPhone.substring(1)}`
-            : `+251${formattedPhone}`;
-        }
-
-        console.log(`📱 Attempting to send SMS to: ${formattedPhone}`);
-
-        const message = await twilioClient.messages.create({
-          body: reminderMessage,
-          to: formattedPhone,
-          from: process.env.TWILIO_PHONE_NUMBER,
-        });
-
-        smsStatus = "sent";
-        smsSid = message.sid;
-        console.log("✅ SMS sent successfully via Twilio. SID:", message.sid);
-      } catch (twilioError) {
-        const err = twilioError as {
-          code?: string | number;
-          message?: string;
-          status?: number;
-        };
-        console.error("❌ Twilio SMS error:", twilioError);
-        console.error("Error details:", {
-          code: err.code,
-          message: err.message,
-          status: err.status,
-        });
-        smsStatus = "failed";
-      }
-    } else {
-      console.log("\n⚠️ Twilio not configured. Reminder logged only:");
-      console.log("--- REMINDER MESSAGE ---");
-      console.log(`To: ${phone}`);
-      console.log(`Message: ${reminderMessage}`);
-      console.log("--- END REMINDER ---\n");
-      console.log("💡 To enable SMS, add to .env.local:");
-      console.log("TWILIO_ACCOUNT_SID=your-account-sid");
-      console.log("TWILIO_AUTH_TOKEN=your-auth-token");
-      console.log("TWILIO_PHONE_NUMBER=+1234567890\n");
-    }
-
-    // Update database to mark reminder as sent
+  if (twilioClient && process.env.TWILIO_PHONE_NUMBER) {
     try {
-      await supabaseAdmin
-        .from("public_appointments")
-        .update({
-          reminder_sent: true,
-          reminder_sent_at: new Date().toISOString(),
-        })
-        .eq("id", appointmentId);
-    } catch (dbError) {
-      console.error("Error updating reminder status:", dbError);
-      // Continue even if DB update fails
-    }
+      // Normalize to Ethiopian E.164 unless already in E.164.
+      let formattedPhone = phone.trim();
+      if (!formattedPhone.startsWith("+")) {
+        formattedPhone = formattedPhone.startsWith("0")
+          ? `+251${formattedPhone.substring(1)}`
+          : `+251${formattedPhone}`;
+      }
 
-    // Return appropriate response based on actual status
-    if (smsStatus === "sent") {
-      return NextResponse.json({
-        success: true,
-        message: "Reminder sent successfully via SMS",
-        smsStatus: "sent",
-        smsSid,
+      const message = await twilioClient.messages.create({
+        body: reminderMessage,
+        to: formattedPhone,
+        from: process.env.TWILIO_PHONE_NUMBER,
       });
-    } else if (smsStatus === "failed") {
-      return NextResponse.json({
-        success: false,
-        message: "Failed to send SMS. Reminder logged to console. Check Twilio configuration.",
-        smsStatus: "failed",
-        error: "Twilio SMS failed",
-      }, { status: 500 });
-    } else {
-      // Twilio not configured - logged only
-      return NextResponse.json({
-        success: false,
-        message: "Twilio not configured. Reminder message logged to server console. Configure Twilio credentials to send actual SMS.",
-        smsStatus: "logged",
-        logged: true,
-        reminderMessage: reminderMessage,
-        phone: phone,
-      }, { status: 200 }); // 200 because it was "successfully" logged
+      smsStatus = "sent";
+      smsSid = message.sid;
+    } catch (twilioError) {
+      console.error("[reminder] twilio error:", twilioError);
+      smsStatus = "failed";
     }
-  } catch (error) {
-    console.error("Error sending reminder:", error);
-    return NextResponse.json(
-      { error: "Failed to send reminder. Please try again." },
-      { status: 500 }
-    );
   }
-}
 
+  // Best-effort: record that we tried, even if Twilio failed.
+  try {
+    await supabaseAdmin
+      .from("public_appointments")
+      .update({
+        reminder_sent: smsStatus === "sent",
+        reminder_sent_at: new Date().toISOString(),
+      })
+      .eq("id", appointmentId);
+  } catch (dbError) {
+    console.error("[reminder] db update error:", dbError);
+  }
+
+  if (smsStatus === "sent") {
+    return NextResponse.json({
+      success: true,
+      smsStatus,
+      smsSid,
+    });
+  }
+  if (smsStatus === "failed") {
+    return internalError("Failed to send SMS. Check Twilio configuration.");
+  }
+  return NextResponse.json({
+    success: false,
+    smsStatus: "logged",
+    message: "Twilio not configured. Reminder logged but not sent.",
+  });
+}

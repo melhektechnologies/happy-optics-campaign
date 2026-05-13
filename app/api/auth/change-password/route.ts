@@ -1,96 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/server";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth/server";
+import { internalError, notFound, unauthorized } from "@/lib/api/errors";
+import { parseJsonBody, z } from "@/lib/api/validate";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z
+    .string()
+    .min(8, "New password must be at least 8 characters")
+    .max(200, "New password is too long"),
+});
 
 export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
+
+  const body = await parseJsonBody(request, changePasswordSchema);
+  if (!body.ok) return body.response;
+  const { currentPassword, newPassword } = body.data;
+
   try {
-    const authHeader = request.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-
-    if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    let decoded: { id: string; email: string };
-    try {
-      decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 }
-      );
-    }
-
-    const { currentPassword, newPassword } = await request.json();
-
-    if (!currentPassword || !newPassword) {
-      return NextResponse.json(
-        { error: "Current password and new password are required" },
-        { status: 400 }
-      );
-    }
-
-    if (newPassword.length < 8) {
-      return NextResponse.json(
-        { error: "New password must be at least 8 characters" },
-        { status: 400 }
-      );
-    }
-
-    // Get staff member
     const { data: staff, error: staffError } = await supabaseAdmin
       .from("staff")
-      .select("password_hash")
-      .eq("id", decoded.id)
+      .select("id, password_hash")
+      .eq("id", auth.user.id)
       .single();
 
-    if (staffError || !staff) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
+    if (staffError || !staff) return notFound("User not found");
 
-    // Verify current password using bcrypt
-    const isPasswordValid = await bcrypt.compare(currentPassword, staff.password_hash || "");
-    
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: "Current password is incorrect" },
-        { status: 401 }
-      );
-    }
+    const valid = await bcrypt.compare(
+      currentPassword,
+      staff.password_hash || ""
+    );
+    if (!valid) return unauthorized("Current password is incorrect");
 
-    // Hash new password with bcrypt
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-
+    const hashed = await bcrypt.hash(newPassword, 10);
     const { error: updateError } = await supabaseAdmin
       .from("staff")
-      .update({ password_hash: hashedPassword })
-      .eq("id", decoded.id);
+      .update({ password_hash: hashed })
+      .eq("id", auth.user.id);
 
     if (updateError) {
-      console.error("Update password error:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update password" },
-        { status: 500 }
-      );
+      console.error("[change-password] update error:", updateError);
+      return internalError("Failed to update password");
     }
 
-    return NextResponse.json({ message: "Password updated successfully" });
-  } catch (error) {
-    console.error("Change password error:", error);
-    return NextResponse.json(
-      { error: "An error occurred" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[change-password] unexpected error:", err);
+    return internalError();
   }
 }
-

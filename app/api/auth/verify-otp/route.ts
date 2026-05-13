@@ -1,24 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import jwt from "jsonwebtoken";
+import {
+  signSession,
+  SESSION_COOKIE,
+  SESSION_COOKIE_MAX_AGE,
+} from "@/lib/auth/jwt";
+import { unauthorized, internalError, notFound } from "@/lib/api/errors";
+import { parseJsonBody, z } from "@/lib/api/validate";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const otpSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().min(4).max(10),
+});
 
 export async function POST(request: NextRequest) {
+  const body = await parseJsonBody(request, otpSchema);
+  if (!body.ok) return body.response;
+
+  const { email, otp } = body.data;
+
   try {
-    const { email, otp } = await request.json();
-
-    if (!email || !otp) {
-      return NextResponse.json(
-        { error: "Email and OTP are required" },
-        { status: 400 }
-      );
-    }
-
-    // Verify OTP
-    const { data: otpRecord, error: otpError } = await supabaseAdmin
+    const { data: otpRecord } = await supabaseAdmin
       .from("otp_codes")
-      .select("*")
+      .select("id")
       .eq("email", email.toLowerCase())
       .eq("otp_code", otp)
       .eq("used", false)
@@ -27,76 +31,54 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single();
 
-    if (otpError) {
-      console.error("OTP verification error:", otpError);
-      return NextResponse.json(
-        { error: "Failed to verify OTP. Please try again." },
-        { status: 500 }
-      );
-    }
+    if (!otpRecord) return unauthorized("Invalid or expired OTP");
 
-    if (!otpRecord) {
-      return NextResponse.json(
-        { error: "Invalid or expired OTP" },
-        { status: 401 }
-      );
-    }
-
-    // Mark OTP as used
     await supabaseAdmin
       .from("otp_codes")
       .update({ used: true })
       .eq("id", otpRecord.id);
 
-    // Get staff member
-    const { data: staff, error: staffError } = await supabaseAdmin
+    const { data: staff } = await supabaseAdmin
       .from("staff")
-      .select("*")
+      .select("id, email, role, branch, full_name, status")
       .eq("email", email.toLowerCase())
       .single();
 
-    if (staffError || !staff) {
-      return NextResponse.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
+    if (!staff) return notFound("User not found");
+    if (staff.status && staff.status !== "active") {
+      return unauthorized("Account is not active");
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
+    const token = signSession({
+      id: staff.id,
+      email: staff.email,
+      role: staff.role,
+      branch: staff.branch,
+    });
+
+    const response = NextResponse.json({
+      user: {
         id: staff.id,
         email: staff.email,
         role: staff.role,
         branch: staff.branch,
+        name: staff.full_name,
       },
-      JWT_SECRET,
-      { expiresIn: "7d" }
-    );
-
-    // Set cookie
-    const response = NextResponse.json({
-      token,
-      role: staff.role,
-      email: staff.email,
-      branch: staff.branch,
-      name: staff.full_name,
     });
 
-    response.cookies.set("auth_token", token, {
+    response.cookies.set({
+      name: SESSION_COOKIE,
+      value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: SESSION_COOKIE_MAX_AGE,
+      path: "/",
     });
 
     return response;
-  } catch (error) {
-    console.error("OTP verification error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "An error occurred during verification" },
-      { status: 500 }
-    );
+  } catch (err) {
+    console.error("[verify-otp] unexpected error:", err);
+    return internalError();
   }
 }
-

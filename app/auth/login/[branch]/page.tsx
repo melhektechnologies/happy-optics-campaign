@@ -46,45 +46,30 @@ export default function BranchLoginPage() {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email, 
-          password, 
-          expectedBranch: branch === "manager" ? null : branch 
+        credentials: "include",
+        body: JSON.stringify({
+          email,
+          password,
+          expectedBranch: branch === "manager" ? null : branch,
         }),
       });
 
-      let data;
+      let data: { user?: { role: string; branch: string }; error?: string };
       try {
         data = await response.json();
-      } catch (jsonError) {
+      } catch {
         setError("Server error: Invalid response from server. Please check your connection.");
         return;
       }
 
-      if (response.ok) {
-        // Validate branch matches (for staff)
-        if (branch !== "manager" && data.branch !== branch) {
-          setError("You do not have access to this branch");
-          return;
-        }
-
-        // Validate role for manager login
-        if (branch === "manager" && data.role !== "manager") {
-          setError("This account is not authorized as a manager");
-          return;
-        }
-
-        // Login success - save token and redirect
-        localStorage.setItem("auth_token", data.token);
-        localStorage.setItem("user_role", data.role);
-        localStorage.setItem("user_email", data.email);
-        localStorage.setItem("user_branch", data.branch || "");
-
-        // Redirect based on role
-        if (data.role === "manager") {
+      if (response.ok && data.user) {
+        // Server already validated role/branch via expectedBranch; the
+        // session cookie is now set. We use the returned profile only for
+        // routing — never as the source of truth for authorization.
+        if (data.user.role === "manager") {
           router.push("/dashboard/manager");
         } else {
-          router.push(`/dashboard/${data.branch}`);
+          router.push(`/dashboard/${data.user.branch}`);
         }
       } else {
         setError(data.error || "Invalid credentials");

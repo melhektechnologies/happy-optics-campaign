@@ -1,202 +1,139 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { supabaseAdmin } from "@/lib/supabase/server";
-import jwt from "jsonwebtoken";
+import { branchFilterFor, requireAuth } from "@/lib/auth/server";
+import { internalError, rateLimited } from "@/lib/api/errors";
+import { parseJsonBody, z } from "@/lib/api/validate";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-
-// Simple in-memory rate limiting (in production, use Redis or similar)
+// In-memory per-IP rate limit for the public booking endpoint. Good enough
+// for a single Next.js instance; for multi-instance deployments swap for
+// Redis or Upstash.
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
-const RATE_LIMIT_MAX = 5; // 5 requests per hour per IP
+const RATE_LIMIT_MAX = 5;
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const record = rateLimitMap.get(ip);
-
   if (!record || now > record.resetTime) {
     rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
     return true;
   }
-
-  if (record.count >= RATE_LIMIT_MAX) {
-    return false;
-  }
-
+  if (record.count >= RATE_LIMIT_MAX) return false;
   record.count++;
   return true;
 }
 
+const BRANCHES = ["head-office", "bole", "kera", "bethzatha"] as const;
+
 const appointmentSchema = z.object({
-  full_name: z.string().min(2),
-  phone: z.string().min(10),
+  full_name: z.string().min(2).max(120),
+  phone: z.string().min(7).max(30),
   email: z.string().email().optional().or(z.literal("")),
-  branch: z.enum(["head-office", "bole", "kera", "bethzatha"]),
-  preferred_date: z.string(),
-  preferred_time: z.string(),
-  reason: z.string().optional(),
+  branch: z.enum(BRANCHES),
+  preferred_date: z.string().min(1),
+  preferred_time: z.string().min(1),
+  reason: z.string().max(500).optional(),
   is_unity_student: z.boolean().default(false),
-  notes: z.string().optional(),
+  notes: z.string().max(1000).optional(),
   honeypot: z.string().max(0).optional(),
 });
 
+/**
+ * Public booking endpoint. This is the only API endpoint that does NOT
+ * require authentication.
+ */
 export async function POST(request: NextRequest) {
-  try {
-    // Get client IP for rate limiting
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || 
-               request.headers.get("x-real-ip") || 
-               "unknown";
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0] ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
 
-    // Check rate limit
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
-        { status: 429 }
-      );
-    }
-
-    const body = await request.json();
-
-    // Check honeypot
-    if (body.honeypot && body.honeypot.length > 0) {
-      return NextResponse.json(
-        { error: "Invalid submission" },
-        { status: 400 }
-      );
-    }
-
-    // Validate data
-    const validatedData = appointmentSchema.parse(body);
-
-    // Prepare data for insertion
-    const appointmentData: Record<string, unknown> = {
-      full_name: validatedData.full_name,
-      phone: validatedData.phone,
-      branch: validatedData.branch,
-      preferred_date: validatedData.preferred_date,
-      preferred_time: validatedData.preferred_time,
-    };
-
-    // Add optional fields
-    if (validatedData.email && validatedData.email.trim() !== "") {
-      appointmentData.email = validatedData.email;
-    }
-    if (validatedData.reason && validatedData.reason.trim() !== "") {
-      appointmentData.reason = validatedData.reason;
-    }
-    if (validatedData.notes && validatedData.notes.trim() !== "") {
-      appointmentData.notes = validatedData.notes;
-    }
-    // Add is_unity_student (will be added to table if missing)
-    appointmentData.is_unity_student = validatedData.is_unity_student || false;
-
-    // Insert into Supabase
-    const { data, error } = await supabaseAdmin
-      .from("public_appointments")
-      .insert(appointmentData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Supabase error:", error);
-      console.error("Error details:", JSON.stringify(error, null, 2));
-      return NextResponse.json(
-        { error: `Failed to save appointment: ${error.message}. Please check if the table exists and RLS is configured.` },
-        { status: 500 }
-      );
-    }
-
-    // Auto-create patient from appointment if doesn't exist
-    try {
-      const { data: existingPatient } = await supabaseAdmin
-        .from("patients")
-        .select("id")
-        .eq("phone", validatedData.phone)
-        .single();
-
-      if (!existingPatient) {
-        await supabaseAdmin.from("patients").insert({
-          full_name: validatedData.full_name,
-          phone: validatedData.phone,
-          email: validatedData.email || null,
-        });
-      }
-    } catch (patientError) {
-      // Log but don't fail the appointment creation
-      console.log("Note: Could not auto-create patient:", patientError);
-    }
-
-    return NextResponse.json(
-      { success: true, data },
-      { status: 201 }
-    );
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Invalid form data", details: error.issues },
-        { status: 400 }
-      );
-    }
-
-    console.error("Appointment submission error:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred. Please try again." },
-      { status: 500 }
-    );
+  if (!checkRateLimit(ip)) {
+    return rateLimited("Too many booking attempts. Please try again later.");
   }
+
+  const body = await parseJsonBody(request, appointmentSchema);
+  if (!body.ok) return body.response;
+  const data = body.data;
+
+  // Honeypot — bots fill hidden fields. Schema already enforces empty, but
+  // we keep the explicit check for clarity.
+  if (data.honeypot && data.honeypot.length > 0) {
+    return NextResponse.json({ success: true }, { status: 201 });
+  }
+
+  const appointmentInsert = {
+    full_name: data.full_name,
+    phone: data.phone,
+    email: data.email && data.email.trim() !== "" ? data.email : null,
+    branch: data.branch,
+    preferred_date: data.preferred_date,
+    preferred_time: data.preferred_time,
+    reason: data.reason || null,
+    notes: data.notes || null,
+    is_unity_student: data.is_unity_student ?? false,
+  };
+
+  const { data: appointment, error } = await supabaseAdmin
+    .from("public_appointments")
+    .insert(appointmentInsert)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("[appointments] insert error:", error);
+    return internalError("Failed to save appointment. Please try again.");
+  }
+
+  // Best-effort patient autocreate. We treat the appointment as the
+  // primary record; if the patient upsert fails we log it but do NOT roll
+  // back the appointment — losing a confirmed booking would be a worse
+  // user experience than a duplicate patient row to clean up later.
+  try {
+    const { data: existing } = await supabaseAdmin
+      .from("patients")
+      .select("id")
+      .eq("phone", data.phone)
+      .maybeSingle();
+
+    if (!existing) {
+      const { error: patientError } = await supabaseAdmin
+        .from("patients")
+        .insert({
+          full_name: data.full_name,
+          phone: data.phone,
+          email: data.email || null,
+        });
+      if (patientError) {
+        console.warn(
+          "[appointments] patient autocreate failed (non-fatal):",
+          patientError.message
+        );
+      }
+    }
+  } catch (patientErr) {
+    console.warn("[appointments] patient autocreate threw:", patientErr);
+  }
+
+  return NextResponse.json(
+    { success: true, data: appointment },
+    { status: 201 }
+  );
 }
 
-// GET endpoint to fetch all appointments (for admin dashboard)
+/** Authenticated read of appointments. Branch-isolated for staff. */
 export async function GET(request: NextRequest) {
-  try {
-    // Check authentication and role
-    const authHeader = request.headers.get("authorization");
-    let token = authHeader?.replace("Bearer ", "");
-    
-    // Fallback to cookie
-    if (!token) {
-      token = request.cookies.get("auth_token")?.value;
-    }
-    
-    let userBranch: string | null = null;
-    let userRole: string | null = null;
-    
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { role: string; branch: string };
-        userRole = decoded.role;
-        userBranch = decoded.branch;
-      } catch (error) {
-        console.error("JWT verification failed:", error);
-        return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
-      }
-    }
-    
-    let query = supabaseAdmin
-      .from("public_appointments")
-      .select("*");
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
 
-    // Non-manager users can only see appointments from their branch
-    if (userRole && userRole !== "manager" && userBranch) {
-      query = query.eq("branch", userBranch);
-    }
+  let query = supabaseAdmin.from("public_appointments").select("*");
+  const branch = branchFilterFor(auth.user);
+  if (branch) query = query.eq("branch", branch);
 
-    const { data, error } = await query.order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch appointments." },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json(data || []);
-  } catch (error) {
-    console.error("Error fetching appointments:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred." },
-      { status: 500 }
-    );
+  const { data, error } = await query.order("created_at", { ascending: false });
+  if (error) {
+    console.error("[appointments] fetch error:", error);
+    return internalError("Failed to fetch appointments.");
   }
+  return NextResponse.json(data || []);
 }

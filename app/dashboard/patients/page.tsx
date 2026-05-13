@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,19 +31,20 @@ interface Patient {
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [userRole, setUserRole] = useState<string>("");
+  const { user } = useCurrentUser();
+  const userRole = user?.role ?? "";
 
   useEffect(() => {
-    const role = localStorage.getItem("user_role") || "";
-    setUserRole(role);
     fetchPatients();
   }, []);
 
   const fetchPatients = async () => {
     try {
-      const response = await fetch("/api/dashboard/patients");
+      const response = await fetch("/api/dashboard/patients", {
+        credentials: "include",
+      });
       if (response.ok) {
         const data = await response.json();
         setPatients(data);

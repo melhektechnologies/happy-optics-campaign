@@ -43,11 +43,8 @@ export default function BranchPrescriptionsPage() {
 
   const fetchPrescriptions = async () => {
     try {
-      const token = localStorage.getItem("auth_token");
       const response = await fetch("/api/dashboard/prescriptions", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
       if (response.ok) {
         const data = await response.json();
