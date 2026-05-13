@@ -22,7 +22,7 @@ export default function AboutPage() {
               About Happy Optics
             </h1>
             <p className="text-lg text-muted-foreground">
-              Established in 2003 E.C., we've grown from a single branch to four locations across Addis Ababa, 
+              Established in 2003 E.C., we&apos;ve grown from a single branch to four locations across Addis Ababa, 
               serving thousands of patients with exceptional eye care and premium eyewear solutions.
             </p>
           </div>

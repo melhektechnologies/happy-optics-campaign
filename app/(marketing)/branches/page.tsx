@@ -55,7 +55,7 @@ export default function BranchesPage() {
               Visit Us at Our Branches
             </h1>
             <p className="text-lg text-muted-foreground">
-              With four convenient locations across Addis Ababa, we're here to serve you. 
+              With four convenient locations across Addis Ababa, we&apos;re here to serve you. 
               Find the branch nearest to you.
             </p>
           </div>
@@ -91,7 +91,7 @@ export default function BranchesPage() {
           <div className="mb-8">
             <h2 className="text-2xl font-bold mb-2">Other Regions Served</h2>
             <p className="text-muted-foreground">
-              We've also extended our services to these regions
+              We&apos;ve also extended our services to these regions
             </p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">

@@ -143,7 +143,7 @@ export default function HomePage() {
                   className="text-lg text-muted-foreground max-w-2xl"
                 >
                   Experience exceptional eye care services and premium eyewear solutions at Happy Optics Optometry Clinic. 
-                  With four branches across Addis Ababa, we're committed to delivering personalized care and the highest quality.
+                  With four branches across Addis Ababa, we&apos;re committed to delivering personalized care and the highest quality.
                 </motion.p>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}

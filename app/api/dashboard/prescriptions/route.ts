@@ -22,7 +22,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform data to include patient name
-    const transformed = (data || []).map((prescription: any) => ({
+    type PrescriptionRow = Record<string, unknown> & {
+      patients?: { full_name?: string | null } | null;
+    };
+    const transformed = ((data ?? []) as PrescriptionRow[]).map((prescription) => ({
       ...prescription,
       patient_name: prescription.patients?.full_name || "Unknown",
     }));

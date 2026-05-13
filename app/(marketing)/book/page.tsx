@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PrescriptionUpload } from "@/components/prescription-upload";
-import { ScrollAnimation } from "@/components/scroll-animation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -134,11 +133,11 @@ function BookPageContent() {
               </div>
               <h2 className="mb-4 text-3xl font-bold">Appointment Request Submitted!</h2>
               <p className="mb-6 text-lg text-muted-foreground">
-                Thank you for booking with Happy Optics. We've received your appointment request and will call you 
+                Thank you for booking with Happy Optics. We&apos;ve received your appointment request and will call you 
                 shortly to confirm your preferred date and time.
               </p>
               <Button asChild>
-                <a href="/">Return to Home</a>
+                <Link href="/">Return to Home</Link>
               </Button>
             </CardContent>
           </Card>
@@ -158,7 +157,7 @@ function BookPageContent() {
               Schedule Your Visit
             </h1>
             <p className="text-lg text-muted-foreground">
-              Fill out the form below to request an appointment. We'll call you to confirm your preferred date and time.
+              Fill out the form below to request an appointment. We&apos;ll call you to confirm your preferred date and time.
             </p>
             {isUnityParam && (
               <div className="mt-4">

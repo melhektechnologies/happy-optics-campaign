@@ -59,7 +59,7 @@ export default function UnityPage() {
             </p>
             <p className="text-base text-muted-foreground mb-8">
               With increased screen time from computers and mobile devices leading to eye strain and 
-              other eye health problems, we're bringing easily accessible health services directly to 
+              other eye health problems, we&apos;re bringing easily accessible health services directly to 
               the university campus.
             </p>
             <Button asChild size="lg" className="group">
@@ -166,7 +166,7 @@ export default function UnityPage() {
                   </p>
                   <p>
                     In partnership with <strong className="text-foreground">Unity University</strong>, 
-                    one of Ethiopia's top academic institutions, we are bringing comprehensive eye care 
+                    one of Ethiopia&apos;s top academic institutions, we are bringing comprehensive eye care 
                     services directly to the university campus.
                   </p>
                   <p>
@@ -204,7 +204,7 @@ export default function UnityPage() {
                   <h3 className="mb-2 font-semibold">Book Your Appointment</h3>
                   <p className="text-sm text-muted-foreground">
                     Use our online booking system or call us to schedule your free eye check. 
-                    Make sure to mention you're a Unity University student.
+                    Make sure to mention you&apos;re a Unity University student.
                   </p>
                 </div>
               </div>

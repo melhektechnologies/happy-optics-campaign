@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const validatedData = appointmentSchema.parse(body);
 
     // Prepare data for insertion
-    const appointmentData: Record<string, any> = {
+    const appointmentData: Record<string, unknown> = {
       full_name: validatedData.full_name,
       phone: validatedData.phone,
       branch: validatedData.branch,

@@ -37,11 +37,15 @@ export default function BranchDashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
+    // One-shot client-only sync from localStorage (external store).
     const role = localStorage.getItem("user_role") || "";
     const email = localStorage.getItem("user_email") || "";
     const branch = localStorage.getItem("user_branch") || "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
     setUserRole(role);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
     setUserEmail(email);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
     setUserBranch(branch);
 
     // Redirect if not logged in or branch doesn't match

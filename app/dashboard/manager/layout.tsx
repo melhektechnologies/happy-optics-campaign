@@ -42,9 +42,12 @@ export default function ManagerDashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
+    // One-shot client-only sync from localStorage (external store).
     const role = localStorage.getItem("user_role") || "";
     const email = localStorage.getItem("user_email") || "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
     setUserRole(role);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
     setUserEmail(email);
 
     if (!role || role !== "manager") {

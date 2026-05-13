@@ -32,31 +32,47 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild, children, ...props }, ref) => {
-    if (asChild && React.isValidElement(children)) {
-      // If asChild is true, clone the child element and apply button styles
-      const child = children as React.ReactElement<any>;
-      return React.cloneElement(child, {
-        className: cn(buttonVariants({ variant, size }), className, child.props?.className),
-        ref,
-      } as any);
-    }
-    
-    return (
-      <button
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </button>
+type AsChildProps = {
+  className?: string;
+  ref?: React.Ref<HTMLElement>;
+};
+
+function Button({
+  className,
+  variant,
+  size,
+  asChild,
+  children,
+  ref,
+  ...props
+}: ButtonProps) {
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<AsChildProps>;
+    const mergedClassName = cn(
+      buttonVariants({ variant, size }),
+      className,
+      child.props?.className
     );
+    // eslint-disable-next-line react-hooks/refs -- forwarding the ref to the asChild element; not reading `.current` during render.
+    return React.cloneElement(child, {
+      className: mergedClassName,
+      ref: ref as React.Ref<HTMLElement>,
+    });
   }
-);
+
+  return (
+    <button
+      className={cn(buttonVariants({ variant, size, className }))}
+      ref={ref}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+}
 Button.displayName = "Button";
 
 export { Button, buttonVariants };
-

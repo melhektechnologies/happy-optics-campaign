@@ -21,11 +21,18 @@ import {
 import Link from "next/link";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
+interface ActivityItem {
+  type: string;
+  description: string;
+  timestamp: string;
+  [key: string]: unknown;
+}
+
 interface DashboardStats {
   totalPatients: number;
   todayAppointments: number;
   monthlySales: number;
-  recentActivity: any[];
+  recentActivity: ActivityItem[];
 }
 
 interface Analytics {
@@ -199,7 +206,7 @@ export default function ManagerDashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">${stats.monthlySales.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">This month's revenue</p>
+                  <p className="text-xs text-muted-foreground">This month&apos;s revenue</p>
                 </CardContent>
               </Card>
             </Link>
@@ -267,7 +274,7 @@ export default function ManagerDashboardPage() {
                 <CardTitle>Appointments by Branch</CardTitle>
               </CardHeader>
               <CardContent>
-                {analytics.appointmentsByBranch && analytics.appointmentsByBranch.length > 0 && analytics.appointmentsByBranch.some((b: any) => b.count > 0) ? (
+                {analytics.appointmentsByBranch && analytics.appointmentsByBranch.length > 0 && analytics.appointmentsByBranch.some((b) => b.count > 0) ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -280,7 +287,7 @@ export default function ManagerDashboardPage() {
                         fill="#8884d8"
                         dataKey="count"
                       >
-                        {analytics.appointmentsByBranch.map((entry: any, index: number) => (
+                        {analytics.appointmentsByBranch.map((_entry, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
