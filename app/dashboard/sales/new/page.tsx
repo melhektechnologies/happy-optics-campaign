@@ -45,10 +45,10 @@ export default function NewSalePage() {
   });
 
   useEffect(() => {
-    fetch("/api/dashboard/patients")
-      .then((res) => res.json())
-      .then((data) => setPatients(data))
-      .catch(console.error);
+    fetch("/api/dashboard/patients", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setPatients(Array.isArray(data) ? data : []))
+      .catch(() => setPatients([]));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,6 +60,7 @@ export default function NewSalePage() {
       const response = await fetch("/api/dashboard/sales", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           ...formData,
           total_amount: parseFloat(formData.total_amount),
@@ -69,7 +70,6 @@ export default function NewSalePage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Check if we're in manager context
         const currentPath = window.location.pathname;
         if (currentPath.includes("/manager/")) {
           router.push("/dashboard/manager/sales");
@@ -79,7 +79,7 @@ export default function NewSalePage() {
       } else {
         setError(data.error || "Failed to create sale");
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);

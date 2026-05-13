@@ -20,16 +20,36 @@ export default function ContactPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // In a real app, you'd send this to an API endpoint
-    setTimeout(() => {
-      setIsSuccess(true);
+    setErrorMessage(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formData),
+      });
+      if (res.ok) {
+        setIsSuccess(true);
+        setFormData({ name: "", email: "", phone: "", message: "" });
+      } else {
+        const data = (await res.json().catch(() => null)) as
+          | { error?: string }
+          | null;
+        setErrorMessage(
+          data?.error ||
+            "We couldn't send your message. Please try again or call us."
+        );
+      }
+    } catch {
+      setErrorMessage("Network error. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      setFormData({ name: "", email: "", phone: "", message: "" });
-    }, 1000);
+    }
   };
 
   return (
@@ -138,6 +158,14 @@ export default function ContactPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    {errorMessage && (
+                      <div
+                        role="alert"
+                        className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
+                      >
+                        {errorMessage}
+                      </div>
+                    )}
                     <div>
                       <Label htmlFor="name">Name</Label>
                       <Input

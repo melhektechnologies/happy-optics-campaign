@@ -10,7 +10,6 @@ import { TestimonialsCarousel } from "@/components/testimonials-carousel";
 import { ScrollAnimation } from "@/components/scroll-animation";
 import { ParallaxSection } from "@/components/parallax-section";
 import { TrustBadges } from "@/components/trust-badges";
-import { LiveChatWidget } from "@/components/live-chat-widget";
 import { PartnersSection } from "@/components/partners-section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,8 +40,6 @@ const testimonials = [
 export default function HomePage() {
   return (
     <>
-      <LiveChatWidget />
-      
       {/* Hero Section with Premium Animations */}
       <Section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 min-h-[90vh] flex items-center">
         <div className="absolute inset-0 opacity-30" style={{

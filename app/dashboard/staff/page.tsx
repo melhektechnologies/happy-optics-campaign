@@ -9,17 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { 
-  UserPlus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Mail, 
-  Phone, 
+import {
+  UserPlus,
+  Search,
+  Mail,
+  Phone,
   MapPin,
   Filter,
-  Download,
-  X
+  X,
 } from "lucide-react";
 
 interface StaffMember {
@@ -209,16 +206,7 @@ export default function StaffPage() {
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">{member.phone}</span>
                 </div>
-                <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </div>
+
               </CardContent>
             </Card>
           ))

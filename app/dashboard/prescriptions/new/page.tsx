@@ -34,10 +34,10 @@ export default function NewPrescriptionPage() {
   });
 
   useEffect(() => {
-    fetch("/api/dashboard/patients")
-      .then((res) => res.json())
-      .then((data) => setPatients(data))
-      .catch(console.error);
+    fetch("/api/dashboard/patients", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setPatients(Array.isArray(data) ? data : []))
+      .catch(() => setPatients([]));
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,6 +49,7 @@ export default function NewPrescriptionPage() {
       const response = await fetch("/api/dashboard/prescriptions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 

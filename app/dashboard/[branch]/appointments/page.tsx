@@ -81,14 +81,8 @@ export default function BranchAppointmentsPage() {
       const response = await fetch("/api/appointments/reminder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          appointmentId: appointment.id,
-          phone: appointment.phone,
-          name: appointment.full_name,
-          date: appointment.preferred_date,
-          time: appointment.preferred_time,
-          branch: branchNames[appointment.branch],
-        }),
+        credentials: "include",
+        body: JSON.stringify({ appointmentId: appointment.id }),
       });
 
       const data = await response.json();

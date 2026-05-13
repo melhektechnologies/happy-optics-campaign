@@ -7,14 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  FileText, 
-  Search, 
-  Eye, 
-  Download,
-  User,
-  Calendar
-} from "lucide-react";
+import { FileText, Search } from "lucide-react";
 
 interface Prescription {
   id: string;
@@ -138,16 +131,6 @@ export default function PrescriptionsPage() {
                 {prescription.notes && (
                   <p className="text-sm text-muted-foreground mb-4">{prescription.notes}</p>
                 )}
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="mr-2 h-4 w-4" />
-                    View Details
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           ))
