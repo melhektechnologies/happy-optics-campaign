@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,25 +49,19 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [userRole, setUserRole] = useState<string>("");
-  const [userBranch, setUserBranch] = useState<string>("");
+  const { user } = useCurrentUser();
+  const userRole = user?.role ?? "";
+  const userBranch = user?.branch ?? "";
 
   useEffect(() => {
-    const role = localStorage.getItem("user_role") || "";
-    const branch = localStorage.getItem("user_branch") || "";
-    setUserRole(role);
-    setUserBranch(branch);
     fetchAppointments();
   }, []);
 
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("auth_token");
       const response = await fetch("/api/appointments", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
       if (response.ok) {
         const data = await response.json();

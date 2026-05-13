@@ -1,107 +1,112 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { requireRole } from "@/lib/auth/server";
+import { internalError } from "@/lib/api/errors";
 
-// This is a placeholder analytics API
-// In production, integrate with:
-// - Google Analytics API
-// - Vercel Analytics
-// - Custom tracking solution
-// - Plausible Analytics
-// - etc.
+// NOTE: traffic / visit numbers below are derived heuristically from the
+// appointment volume in our DB; we do not yet have a real analytics
+// provider wired up. The booking metrics are real. Treat this endpoint as
+// a manager-only dashboard data source, not a public traffic feed.
 
 export async function GET(request: NextRequest) {
+  const auth = await requireRole(request, "manager");
+  if (!auth.ok) return auth.response;
+
   try {
-    // Get appointments for analytics
     const { data: appointments, error } = await supabaseAdmin
       .from("public_appointments")
-      .select("*")
+      .select("preferred_date, branch")
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Supabase error:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch analytics data." },
-        { status: 500 }
-      );
+      console.error("[analytics] fetch error:", error);
+      return internalError("Failed to fetch analytics data.");
     }
 
-    // Calculate analytics from appointments
     const today = new Date();
     const todayStr = today.toISOString().split("T")[0];
-    
-    const appointmentsToday = appointments?.filter(
+
+    type AppointmentRow = { preferred_date: string; branch: string | null };
+    const rows = (appointments ?? []) as AppointmentRow[];
+
+    const appointmentsToday = rows.filter(
       (apt) => apt.preferred_date === todayStr
-    ).length || 0;
+    ).length;
 
-    const appointmentsThisWeek = appointments?.filter((apt) => {
-      const aptDate = new Date(apt.preferred_date);
-      const weekAgo = new Date(today);
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return aptDate >= weekAgo;
-    }).length || 0;
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const appointmentsThisWeek = rows.filter(
+      (apt) => new Date(apt.preferred_date) >= weekAgo
+    ).length;
 
-    const appointmentsThisMonth = appointments?.filter((apt) => {
-      const aptDate = new Date(apt.preferred_date);
-      const monthAgo = new Date(today);
-      monthAgo.setMonth(monthAgo.getMonth() - 1);
-      return aptDate >= monthAgo;
-    }).length || 0;
+    const monthAgo = new Date(today);
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    const appointmentsThisMonth = rows.filter(
+      (apt) => new Date(apt.preferred_date) >= monthAgo
+    ).length;
 
-    // Branch distribution with proper branch names
-    const branchCounts = (appointments || []).reduce((acc, apt) => {
-      const branch = apt.branch || 'unknown';
-      acc[branch] = (acc[branch] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const branchCounts: Record<string, number> = {};
+    for (const apt of rows) {
+      const b = apt.branch || "unknown";
+      branchCounts[b] = (branchCounts[b] || 0) + 1;
+    }
 
     const branchNameMap: Record<string, string> = {
-      'head-office': 'Head Office',
-      'bole': 'Bole',
-      'kera': 'Kera',
-      'bethzatha': 'Betezatha',
+      "head-office": "Head Office",
+      bole: "Bole",
+      kera: "Kera",
+      bethzatha: "Betezatha",
     };
+    const appointmentsByBranch = Object.entries(branchCounts).map(
+      ([branch, count]) => ({
+        branch: branchNameMap[branch] || branch,
+        count,
+      })
+    );
 
-    const appointmentsByBranch = Object.entries(branchCounts).map(([branch, count]) => ({
-      branch: branchNameMap[branch] || branch,
-      count,
-    }));
-
-    // Date-based distribution (last 30 days)
     const dateCounts: Record<string, number> = {};
-    (appointments || []).forEach((apt) => {
-      const date = apt.preferred_date;
-      dateCounts[date] = (dateCounts[date] || 0) + 1;
-    });
-
+    for (const apt of rows) {
+      dateCounts[apt.preferred_date] = (dateCounts[apt.preferred_date] || 0) + 1;
+    }
     const appointmentsByDate = Object.entries(dateCounts)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .slice(-30)
       .map(([date, count]) => ({
-        date: new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+        date: new Date(date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
         count,
       }));
 
-    // Calculate conversion rate (appointments / estimated visits)
-    // In production, replace with real analytics data
-    const totalAppointments = (appointments || []).length;
-    const estimatedVisits = Math.max(1000, totalAppointments * 10); // Mock - replace with real analytics
-    const conversionRate = estimatedVisits > 0 
-      ? (totalAppointments / estimatedVisits) * 100 
-      : 0.0;
+    const totalAppointments = rows.length;
+    // Heuristic traffic estimate — clearly marked as such on the wire.
+    const estimatedVisits = Math.max(1000, totalAppointments * 10);
+    const conversionRate =
+      estimatedVisits > 0 ? (totalAppointments / estimatedVisits) * 100 : 0;
 
-    // Mock website analytics (replace with real analytics API)
-    // In production, fetch from:
-    // - Google Analytics API
-    // - Vercel Analytics
-    // - Your tracking solution
-    const analytics = {
-      totalVisits: estimatedVisits,
-      uniqueVisitors: Math.floor(estimatedVisits * 0.7),
-      pageViews: Math.floor(estimatedVisits * 1.5),
+    // The traffic fields below (totalVisits/uniqueVisitors/pageViews/
+    // conversionRate/topPages) are heuristic estimates derived from
+    // appointment volume — we don't yet have a real web-analytics
+    // provider wired up. The appointment metrics are real.
+    return NextResponse.json({
       appointmentsToday,
       appointmentsThisWeek,
       appointmentsThisMonth,
-      conversionRate: Number(conversionRate.toFixed(2)), // Ensure it's a number
+      appointmentsByBranch:
+        appointmentsByBranch.length > 0
+          ? appointmentsByBranch
+          : [
+              { branch: "Head Office", count: 0 },
+              { branch: "Bole", count: 0 },
+              { branch: "Kera", count: 0 },
+              { branch: "Betezatha", count: 0 },
+            ],
+      appointmentsByDate,
+      totalVisits: estimatedVisits,
+      uniqueVisitors: Math.floor(estimatedVisits * 0.7),
+      pageViews: Math.floor(estimatedVisits * 1.5),
+      conversionRate: Number(conversionRate.toFixed(2)),
       topPages: [
         { page: "Home", views: Math.floor(estimatedVisits * 0.4) },
         { page: "Services", views: Math.floor(estimatedVisits * 0.25) },
@@ -109,22 +114,10 @@ export async function GET(request: NextRequest) {
         { page: "About", views: Math.floor(estimatedVisits * 0.1) },
         { page: "Unity Campaign", views: Math.floor(estimatedVisits * 0.05) },
       ],
-      appointmentsByBranch: appointmentsByBranch.length > 0 ? appointmentsByBranch : [
-        { branch: "Head Office", count: 0 },
-        { branch: "Bole", count: 0 },
-        { branch: "Kera", count: 0 },
-        { branch: "Betezatha", count: 0 },
-      ],
-      appointmentsByDate: appointmentsByDate.length > 0 ? appointmentsByDate : [],
-    };
-
-    return NextResponse.json(analytics);
-  } catch (error) {
-    console.error("Analytics error:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred." },
-      { status: 500 }
-    );
+      isEstimated: true,
+    });
+  } catch (err) {
+    console.error("[analytics] unexpected error:", err);
+    return internalError();
   }
 }
-

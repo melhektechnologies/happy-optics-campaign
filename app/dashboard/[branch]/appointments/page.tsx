@@ -56,17 +56,14 @@ export default function BranchAppointmentsPage() {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("auth_token");
       const response = await fetch("/api/appointments", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
       if (response.ok) {
+        // Server-side branch isolation already filters down to the
+        // current user's branch — no client-side filtering required.
         const data = await response.json();
-        // Filter appointments for this branch only
-        const branchAppointments = data.filter((apt: Appointment) => apt.branch === branch);
-        setAppointments(branchAppointments);
+        setAppointments(data);
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);

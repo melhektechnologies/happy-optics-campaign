@@ -1,62 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 
 interface AuthGuardProps {
   children: React.ReactNode;
   requiredRole?: "manager" | "staff";
 }
 
+// Client-side gate. Server middleware already enforces auth on dashboard
+// routes; this component exists for pages mounted via `app/` where we want
+// a quick spinner before role mismatch redirects.
 export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+  const { user, loading } = useCurrentUser();
+
+  const unauthenticated = !loading && !user;
+  const wrongRole =
+    !loading && !!user && requiredRole === "manager" && user.role !== "manager";
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    const token = localStorage.getItem("auth_token");
-    const role = localStorage.getItem("user_role");
-
-    if (!token) {
+    if (unauthenticated) {
       router.push("/auth/login");
-      return;
+    } else if (wrongRole) {
+      router.push("/auth/login/manager");
     }
+  }, [unauthenticated, wrongRole, router]);
 
-    if (requiredRole && role !== requiredRole) {
-      router.push("/auth/login");
-      return;
-    }
-
-    // Verify token is still valid
-    try {
-      const response = await fetch("/api/auth/verify", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("user_role");
-        localStorage.removeItem("user_email");
-        router.push("/auth/login");
-        return;
-      }
-
-      setAuthorized(true);
-    } catch (error) {
-      router.push("/auth/login");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (loading || unauthenticated || wrongRole) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -64,10 +37,5 @@ export function AuthGuard({ children, requiredRole }: AuthGuardProps) {
     );
   }
 
-  if (!authorized) {
-    return null;
-  }
-
   return <>{children}</>;
 }
-

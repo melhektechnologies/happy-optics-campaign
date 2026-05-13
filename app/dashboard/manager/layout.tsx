@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
+import { clientLogout } from "@/lib/auth-client";
 import { 
   LayoutDashboard, 
   Users, 
@@ -36,41 +38,37 @@ export default function ManagerDashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
   const pathname = usePathname();
   const router = useRouter();
+  const { user, loading } = useCurrentUser();
 
-  useEffect(() => {
-    // One-shot client-only sync from localStorage (external store).
-    const role = localStorage.getItem("user_role") || "";
-    const email = localStorage.getItem("user_email") || "";
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
-    setUserRole(role);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
-    setUserEmail(email);
-
-    if (!role || role !== "manager") {
-      router.push("/auth/login/manager");
-      return;
-    }
-  }, [router]);
-
-  const handleSignOut = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_branch");
+  const handleSignOut = async () => {
+    await clientLogout();
     router.push("/auth/login/manager");
   };
 
-  if (userRole !== "manager") {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
+
+  // Server middleware will have redirected unauthenticated requests, but
+  // we double-check role client-side: a non-manager who somehow lands on
+  // /dashboard/manager should be sent home, not see the chrome.
+  if (!user || user.role !== "manager") {
+    router.push("/auth/login/manager");
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">Redirecting…</p>
+      </div>
+    );
+  }
+
+  const userRole = user.role;
+  const userEmail = user.email;
 
   return (
     <div className="min-h-screen bg-muted/30">

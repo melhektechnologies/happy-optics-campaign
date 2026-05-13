@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,36 +30,29 @@ interface Sale {
 }
 
 export default function SalesPage() {
+  const { user } = useCurrentUser();
+  const userRole = user?.role ?? "";
   const [sales, setSales] = useState<Sale[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateRange, setDateRange] = useState<"today" | "week" | "month" | "all">("month");
-  const [userRole, setUserRole] = useState<string>("");
-  const [userBranch, setUserBranch] = useState<string>("");
 
   useEffect(() => {
-    const role = localStorage.getItem("user_role") || "";
-    const branch = localStorage.getItem("user_branch") || "";
-    setUserRole(role);
-    setUserBranch(branch);
-    
-    // Redirect non-manager users away from sales page
-    if (role && role !== "manager") {
-      const branch = localStorage.getItem("user_branch") || "";
-      window.location.href = `/dashboard/${branch}`;
+    if (!user) return;
+    // Server enforces the manager check (and branch-isolates staff at the
+    // query layer). We just redirect non-managers off this page so they
+    // don't see a no-op screen.
+    if (user.role !== "manager") {
+      window.location.href = `/dashboard/${user.branch}`;
       return;
     }
-    
     fetchSales();
-  }, [dateRange]);
+  }, [dateRange, user]);
 
   const fetchSales = async () => {
     try {
-      const token = localStorage.getItem("auth_token");
       const response = await fetch(`/api/dashboard/sales?range=${dateRange}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
       if (response.ok) {
         const data = await response.json();

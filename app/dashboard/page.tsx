@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,24 +60,25 @@ export default function DashboardPage() {
     recentActivity: [],
   });
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState<string>("");
+  const [, setLoading] = useState(true);
+  const { user } = useCurrentUser();
+  const userRole = user?.role ?? "";
   const [activeTab, setActiveTab] = useState<"overview" | "analytics">("overview");
 
   useEffect(() => {
-    const role = localStorage.getItem("user_role") || "";
-    setUserRole(role);
-    fetchDashboardData();
-  }, []);
+    if (!user) return;
+    fetchDashboardData(user.role === "manager");
+  }, [user]);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isManager: boolean) => {
     try {
-      // Fetch from API endpoints
       const [patientsRes, appointmentsRes, salesRes, analyticsRes] = await Promise.all([
-        fetch("/api/dashboard/patients/count"),
-        fetch("/api/dashboard/appointments/today"),
-        fetch("/api/dashboard/sales/monthly"),
-        userRole === "manager" ? fetch("/api/analytics").catch(() => null) : Promise.resolve(null),
+        fetch("/api/dashboard/patients/count", { credentials: "include" }),
+        fetch("/api/dashboard/appointments/today", { credentials: "include" }),
+        fetch("/api/dashboard/sales/monthly", { credentials: "include" }),
+        isManager
+          ? fetch("/api/analytics", { credentials: "include" }).catch(() => null)
+          : Promise.resolve(null),
       ]);
 
       const patients = await patientsRes.json().catch(() => ({ count: 0 }));
@@ -104,7 +106,7 @@ export default function DashboardPage() {
         recentActivity: [],
       });
       
-      if (analyticsData && userRole === "manager") {
+      if (analyticsData) {
         setAnalytics(analyticsData);
       }
     } catch (error) {
@@ -135,7 +137,7 @@ export default function DashboardPage() {
                   View Website
                 </Link>
               </Button>
-              <Button onClick={fetchDashboardData} variant="outline" size="sm">
+              <Button onClick={() => fetchDashboardData(true)} variant="outline" size="sm">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>

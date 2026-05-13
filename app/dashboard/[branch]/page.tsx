@@ -1,25 +1,25 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Users, 
-  Calendar, 
+import {
+  Users,
+  Calendar,
   RefreshCw,
 } from "lucide-react";
-import { useState } from "react";
 
 export default function BranchDashboardPage() {
   const params = useParams();
   const branch = params.branch as string;
-  const router = useRouter();
   const [stats, setStats] = useState({
     todayAppointments: 0,
     totalPatients: 0,
   });
-  const [loading, setLoading] = useState(true);
+  // Loading flag is retained for future skeletons; currently the cards just
+  // show the zero state while fetching.
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
@@ -27,14 +27,10 @@ export default function BranchDashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem("auth_token");
+      // Cookie-based auth is automatic — no Authorization header.
       const [patientsRes, appointmentsRes] = await Promise.all([
-        fetch("/api/dashboard/patients/count", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/dashboard/appointments/today", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        fetch("/api/dashboard/patients/count", { credentials: "include" }),
+        fetch("/api/dashboard/appointments/today", { credentials: "include" }),
       ]);
 
       const patients = await patientsRes.json().catch(() => ({ count: 0 }));

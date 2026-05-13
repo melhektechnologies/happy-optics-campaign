@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
+import { clientLogout } from "@/lib/auth-client";
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -29,59 +31,43 @@ export default function BranchDashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string>("");
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [userBranch, setUserBranch] = useState<string>("");
   const params = useParams();
   const branch = params.branch as string;
   const router = useRouter();
+  const { user, loading } = useCurrentUser();
 
+  // Branch routing decisions happen reactively as the user state resolves.
   useEffect(() => {
-    // One-shot client-only sync from localStorage (external store).
-    const role = localStorage.getItem("user_role") || "";
-    const email = localStorage.getItem("user_email") || "";
-    const branch = localStorage.getItem("user_branch") || "";
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
-    setUserRole(role);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
-    setUserEmail(email);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is an external store; reading happens once on mount.
-    setUserBranch(branch);
-
-    // Redirect if not logged in or branch doesn't match
-    if (!role || !branch) {
-      router.push(`/auth/login/${params.branch}`);
+    if (loading) return;
+    if (!user) {
+      router.push(`/auth/login/${branch}`);
       return;
     }
-
-    // If user is manager, redirect to manager dashboard
-    if (role === "manager") {
+    if (user.role === "manager") {
       router.push("/dashboard/manager");
       return;
     }
-
-    // If branch doesn't match, redirect to correct branch
-    if (branch !== params.branch) {
-      router.push(`/dashboard/${branch}`);
-      return;
+    if (user.branch !== branch) {
+      router.push(`/dashboard/${user.branch}`);
     }
-  }, [router, params.branch]);
+  }, [loading, user, branch, router]);
 
-  const handleSignOut = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_branch");
+  const handleSignOut = async () => {
+    await clientLogout();
     router.push(`/auth/login/${branch}`);
   };
 
-  if (!userRole || userBranch !== branch) {
+  if (loading || !user || user.branch !== branch || user.role === "manager") {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
+
+  const userRole = user.role;
+  const userEmail = user.email;
+  const userBranch = user.branch;
 
   return (
     <div className="min-h-screen bg-muted/30">

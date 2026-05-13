@@ -1,52 +1,68 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
+import { verifySession, SESSION_COOKIE } from "@/lib/auth/jwt";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
-const secret = new TextEncoder().encode(JWT_SECRET);
+// Middleware is a first line of defense, not the only one. Every internal
+// API route also calls `requireAuth` / `requireRole` so that direct calls
+// from any source still go through server-side authz checks.
+
+const PUBLIC_PREFIXES = [
+  "/auth",
+  "/api/auth",
+  "/_next",
+  "/brand",
+  "/gallery",
+  "/favicon.ico",
+];
+
+const PUBLIC_EXACT = new Set<string>([
+  "/",
+  "/about",
+  "/book",
+  "/branches",
+  "/contact",
+  "/services",
+  "/unity",
+  "/robots.txt",
+  "/sitemap.xml",
+]);
+
+// Only this public-write API endpoint is allowed without a session.
+const PUBLIC_APPOINTMENT_BOOKING = "/api/appointments";
+
+function isPublic(pathname: string, method: string): boolean {
+  if (PUBLIC_EXACT.has(pathname)) return true;
+  if (PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))) return true;
+  // Booking: only POST is public. All other methods (GET listing, etc.)
+  // require auth and are enforced by the route's own requireAuth call too.
+  if (pathname === PUBLIC_APPOINTMENT_BOOKING && method === "POST") {
+    return true;
+  }
+  return false;
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const method = request.method;
 
-  // 1. Allow public routes
-  if (
-    pathname.startsWith("/auth") ||
-    pathname === "/" ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/appointments") || // Public appointment submission
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/brand") ||
-    pathname.startsWith("/gallery") ||
-    pathname.startsWith("/favicon.ico")
-  ) {
+  if (isPublic(pathname, method)) {
     return NextResponse.next();
   }
 
-  // 2. Protect dashboard and internal API routes
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/api/dashboard") || pathname.startsWith("/api/analytics")) {
-    const token = request.cookies.get("auth_token")?.value;
+  // Everything else requires a valid session cookie.
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const claims = await verifySession(token);
 
-    if (!token) {
-      if (pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
-      const url = new URL("/auth/login", request.url);
-      url.searchParams.set("callbackUrl", pathname);
-      return NextResponse.redirect(url);
+  if (!claims) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Unauthorized", code: "unauthorized" },
+        { status: 401 }
+      );
     }
-
-    try {
-      // Verify JWT
-      await jwtVerify(token, secret);
-      return NextResponse.next();
-    } catch (error) {
-      console.error("Middleware Auth Error:", error);
-      if (pathname.startsWith("/api/")) {
-        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
-      }
-      const url = new URL("/auth/login", request.url);
-      return NextResponse.redirect(url);
-    }
+    const url = new URL("/auth/login", request.url);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
   }
 
   return NextResponse.next();
@@ -55,4 +71,3 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
-

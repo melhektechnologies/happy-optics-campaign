@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/lib/hooks/use-current-user";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,45 +53,32 @@ const roles = [
 export default function StaffPage() {
   const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [branchFilter, setBranchFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [userRole, setUserRole] = useState<string>("");
-  const [userBranch, setUserBranch] = useState<string>("");
+  const { user } = useCurrentUser();
+  const userRole = user?.role ?? "";
 
   useEffect(() => {
-    const role = localStorage.getItem("user_role") || "";
-    const branch = localStorage.getItem("user_branch") || "";
-    setUserRole(role);
-    setUserBranch(branch);
-    
-    // Redirect non-manager users away from staff management page
-    if (role && role !== "manager") {
-      router.push(`/dashboard/${branch}`);
+    if (!user) return;
+    if (user.role !== "manager") {
+      router.push(`/dashboard/${user.branch}`);
       return;
     }
-    
     fetchStaff();
-  }, [router]);
+  }, [router, user]);
 
   const fetchStaff = async () => {
     try {
-      const token = localStorage.getItem("auth_token");
       const response = await fetch("/api/dashboard/staff", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        credentials: "include",
       });
       if (response.ok) {
+        // Server already branch-isolates non-managers; managers see all.
         const data = await response.json();
-        // If non-manager user, only show their own branch
-        if (userRole && userRole !== "manager") {
-          setStaff(data.filter((member: StaffMember) => member.branch === userBranch));
-        } else {
-          setStaff(data);
-        }
+        setStaff(data);
       }
     } catch (error) {
       console.error("Error fetching staff:", error);
@@ -285,13 +273,10 @@ function AddStaffForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("auth_token");
       const response = await fetch("/api/dashboard/staff", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 

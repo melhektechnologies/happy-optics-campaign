@@ -67,20 +67,13 @@ export default function ManagerDashboardPage() {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem("auth_token");
+      // Session cookie is sent automatically (same-origin). No Authorization
+      // header needed; localStorage tokens were removed in the auth migration.
       const [patientsRes, appointmentsRes, salesRes, analyticsRes] = await Promise.all([
-        fetch("/api/dashboard/patients/count", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/dashboard/appointments/today", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/dashboard/sales/monthly", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/analytics", {
-          headers: { Authorization: `Bearer ${token}` },
-        }).catch(() => null),
+        fetch("/api/dashboard/patients/count", { credentials: "include" }),
+        fetch("/api/dashboard/appointments/today", { credentials: "include" }),
+        fetch("/api/dashboard/sales/monthly", { credentials: "include" }),
+        fetch("/api/analytics", { credentials: "include" }).catch(() => null),
       ]);
 
       const patients = await patientsRes.json().catch(() => ({ count: 0 }));
