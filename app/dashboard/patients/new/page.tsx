@@ -32,6 +32,7 @@ export default function NewPatientPage() {
       const response = await fetch("/api/dashboard/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 

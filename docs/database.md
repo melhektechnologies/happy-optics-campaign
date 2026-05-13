@@ -13,6 +13,7 @@ actually lives, and what RLS does (and does not) do for us today.
 | `prescriptions`       | Rx records linked to a `patient_id`.                                    |
 | `sales`               | POS records, branch-scoped, used by manager analytics.                  |
 | `otp_codes`           | Single-use codes for OTP-based login (`/api/auth/verify-otp`).          |
+| `contact_messages`    | Marketing contact-form submissions. Written by anonymous POSTs; reads are manager-only. Added in `20260513_002_contact_messages.sql`. |
 
 > Note: the appointments-related table is named `public_appointments`, not
 > `appointments`. Older docs sometimes use both interchangeably. The code

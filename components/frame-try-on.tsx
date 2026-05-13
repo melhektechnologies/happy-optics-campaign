@@ -3,9 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Camera, Upload, Sparkles } from "lucide-react";
+import { Camera, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 const frameStyles = [
@@ -91,19 +90,8 @@ export function FrameTryOn() {
           ))}
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" className="flex-1">
-            <Upload className="mr-2 h-4 w-4" />
-            Upload Photo
-          </Button>
-          <Button variant="outline" className="flex-1">
-            <Camera className="mr-2 h-4 w-4" />
-            Use Camera
-          </Button>
-        </div>
-
         <p className="text-xs text-center text-muted-foreground">
-          * Virtual try-on feature coming soon. Visit our clinic for in-person frame fitting.
+          * Virtual try-on is launching soon. For now, visit our clinic for in-person frame fitting.
         </p>
       </CardContent>
     </Card>

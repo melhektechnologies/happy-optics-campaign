@@ -7,14 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  UserPlus, 
-  Search, 
-  Edit, 
-  Eye, 
-  Phone, 
+import {
+  UserPlus,
+  Search,
+  Phone,
   Mail,
-  Calendar
+  Calendar,
 } from "lucide-react";
 
 interface Patient {
@@ -140,16 +138,7 @@ export default function PatientsPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2 ml-4">
-                    <Button variant="outline" size="sm">
-                      <Eye className="mr-2 h-4 w-4" />
-                      View
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </Button>
-                  </div>
+
                 </div>
               </CardContent>
             </Card>
