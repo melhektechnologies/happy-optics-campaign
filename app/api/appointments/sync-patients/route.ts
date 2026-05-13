@@ -35,22 +35,35 @@ export async function POST() {
       );
     }
 
+    type PatientRow = { phone: string | null; full_name?: string | null };
+    type AppointmentRow = {
+      phone: string | null;
+      full_name: string | null;
+      email: string | null;
+    };
+    type NewPatient = { full_name: string | null; phone: string; email: string | null };
+
     const existingPhones = new Set(
-      (existingPatients || []).map((p: any) => p.phone?.toLowerCase())
+      ((existingPatients ?? []) as PatientRow[])
+        .map((p) => p.phone?.toLowerCase())
+        .filter((p): p is string => Boolean(p))
     );
 
     // Create patients from appointments that don't exist
-    const newPatients = appointments
-      .filter((apt: any) => apt.phone && !existingPhones.has(apt.phone.toLowerCase()))
-      .map((apt: any) => ({
+    const newPatients: NewPatient[] = (appointments as AppointmentRow[])
+      .filter(
+        (apt): apt is AppointmentRow & { phone: string } =>
+          Boolean(apt.phone) && !existingPhones.has(apt.phone!.toLowerCase())
+      )
+      .map((apt) => ({
         full_name: apt.full_name,
         phone: apt.phone,
         email: apt.email || null,
       }));
 
     // Remove duplicates by phone
-    const uniquePatients = Array.from(
-      new Map(newPatients.map((p: any) => [p.phone.toLowerCase(), p])).values()
+    const uniquePatients: NewPatient[] = Array.from(
+      new Map(newPatients.map((p) => [p.phone.toLowerCase(), p])).values()
     );
 
     if (uniquePatients.length === 0) {

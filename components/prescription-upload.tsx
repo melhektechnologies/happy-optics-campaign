@@ -71,7 +71,7 @@ export function PrescriptionUpload() {
           </motion.div>
         )}
         <p className="text-xs text-muted-foreground">
-          Upload your prescription to help us prepare for your visit. We'll review it before your appointment.
+          Upload your prescription to help us prepare for your visit. We&apos;ll review it before your appointment.
         </p>
       </CardContent>
     </Card>

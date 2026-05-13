@@ -59,7 +59,7 @@ export function PartnersSection() {
               Valued Collaboration Partners
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We're proud to collaborate with leading organizations across Ethiopia, 
+              We&apos;re proud to collaborate with leading organizations across Ethiopia, 
               enabling us to deliver exceptional service and expand our reach.
             </p>
           </div>

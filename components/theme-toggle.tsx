@@ -4,15 +4,11 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useMounted } from "@/lib/hooks/use-mounted";
 
 export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const { theme, toggleTheme } = useTheme();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   if (!mounted) {
     return (

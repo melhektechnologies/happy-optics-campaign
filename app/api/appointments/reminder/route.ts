@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
+import twilio, { type Twilio } from "twilio";
 import { supabaseAdmin } from "@/lib/supabase/server";
 
 // Twilio client (only initialize if credentials are available)
-let twilioClient: any = null;
+let twilioClient: Twilio | null = null;
 try {
   if (
     process.env.TWILIO_ACCOUNT_SID &&
     process.env.TWILIO_AUTH_TOKEN &&
     process.env.TWILIO_PHONE_NUMBER
   ) {
-    const twilio = require("twilio");
     twilioClient = twilio(
       process.env.TWILIO_ACCOUNT_SID,
       process.env.TWILIO_AUTH_TOKEN
     );
   }
-} catch (error) {
+} catch {
   console.log("Twilio not configured, reminders will be logged only");
 }
 
@@ -59,12 +59,17 @@ export async function POST(request: NextRequest) {
         smsStatus = "sent";
         smsSid = message.sid;
         console.log("✅ SMS sent successfully via Twilio. SID:", message.sid);
-      } catch (twilioError: any) {
+      } catch (twilioError) {
+        const err = twilioError as {
+          code?: string | number;
+          message?: string;
+          status?: number;
+        };
         console.error("❌ Twilio SMS error:", twilioError);
         console.error("Error details:", {
-          code: twilioError.code,
-          message: twilioError.message,
-          status: twilioError.status,
+          code: err.code,
+          message: err.message,
+          status: err.status,
         });
         smsStatus = "failed";
       }

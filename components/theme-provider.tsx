@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { useMounted } from "@/lib/hooks/use-mounted";
 
 type Theme = "light" | "dark";
 
@@ -14,25 +15,28 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
 
+  // Read the saved theme / system preference once the client mounts.
+  // This is a one-shot sync from an external system (localStorage / matchMedia).
   useEffect(() => {
-    setMounted(true);
-    // Check localStorage for saved theme preference
+    if (!mounted) return;
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    // Check system preference
-    const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    
+    const systemPrefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+
     if (savedTheme) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot sync from localStorage (external store) on mount.
       setTheme(savedTheme);
     } else if (systemPrefersDark) {
       setTheme("dark");
     }
-  }, []);
+  }, [mounted]);
 
+  // Sync the chosen theme back to the DOM + localStorage.
   useEffect(() => {
     if (!mounted) return;
-    
     const root = document.documentElement;
     if (theme === "dark") {
       root.classList.add("dark");
@@ -46,7 +50,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  // Always provide context, even before mounting
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
@@ -61,4 +64,3 @@ export function useTheme() {
   }
   return context;
 }
-

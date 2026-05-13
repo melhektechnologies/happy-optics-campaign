@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     if (!validated.success) {
       return NextResponse.json(
-        { error: "Validation Failure: " + validated.error.errors[0].message },
+        { error: "Validation Failure: " + validated.error.issues[0].message },
         { status: 400 }
       );
     }

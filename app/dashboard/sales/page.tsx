@@ -183,7 +183,7 @@ export default function SalesPage() {
             <div>
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value as any)}
+                onChange={(e) => setDateRange(e.target.value as "today" | "week" | "month" | "all")}
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               >
                 <option value="today">Today</option>

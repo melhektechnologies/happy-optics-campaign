@@ -43,7 +43,7 @@ export default function ContactPage() {
               Get in Touch
             </h1>
             <p className="text-lg text-muted-foreground">
-              Have questions? We're here to help. Reach out to us through any of the channels below.
+              Have questions? We&apos;re here to help. Reach out to us through any of the channels below.
             </p>
           </div>
         </Container>
@@ -134,7 +134,7 @@ export default function ContactPage() {
               <CardContent>
                 {isSuccess ? (
                   <div className="rounded-md bg-primary/10 p-4 text-center text-sm text-primary">
-                    Thank you for your message! We'll get back to you soon.
+                    Thank you for your message! We&apos;ll get back to you soon.
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
