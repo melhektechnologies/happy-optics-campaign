@@ -1,23 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Calendar, 
-  Clock, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  User, 
+import {
+  Calendar,
+  Clock,
+  Phone,
+  Mail,
+  MapPin,
+  User,
   Send,
-  RefreshCw,
 } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import {
+  LoadingState,
+  EmptyState,
+  ErrorState,
+  ForbiddenState,
+} from "@/components/ui/state-panel";
 
 interface Appointment {
   id: string;
@@ -41,42 +48,56 @@ const branchNames: Record<string, string> = {
   "bethzatha": "Betezatha - Inside Betezatha General Hospital",
 };
 
+type FetchStatus = "idle" | "loading" | "ok" | "error" | "forbidden";
+
 export default function BranchAppointmentsPage() {
   const params = useParams();
   const branch = params.branch as string;
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<FetchStatus>("loading");
   const [filter, setFilter] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [reminderPendingId, setReminderPendingId] = useState<string | null>(null);
+  const { confirm, ConfirmDialog } = useConfirm();
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [branch]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
+    setStatus("loading");
     try {
-      setLoading(true);
       const response = await fetch("/api/appointments", {
         credentials: "include",
       });
-      if (response.ok) {
-        // Server-side branch isolation already filters down to the
-        // current user's branch — no client-side filtering required.
-        const data = await response.json();
-        setAppointments(data);
+      if (response.status === 401 || response.status === 403) {
+        setStatus("forbidden");
+        return;
       }
+      if (!response.ok) {
+        setStatus("error");
+        return;
+      }
+      // Server-side branch isolation already filters down to the
+      // current user's branch — no client-side filtering required.
+      const data = await response.json();
+      setAppointments(data);
+      setStatus("ok");
     } catch (error) {
       console.error("Error fetching appointments:", error);
-    } finally {
-      setLoading(false);
+      setStatus("error");
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments, branch]);
 
   const sendReminder = async (appointment: Appointment) => {
-    if (!confirm(`Send reminder to ${appointment.full_name} at ${appointment.phone}?`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: "Send appointment reminder?",
+      description: `An SMS will be sent to ${appointment.full_name} at ${appointment.phone}.`,
+      confirmLabel: "Send reminder",
+    });
+    if (!ok) return;
 
+    setReminderPendingId(appointment.id);
     try {
       const response = await fetch("/api/appointments/reminder", {
         method: "POST",
@@ -88,18 +109,29 @@ export default function BranchAppointmentsPage() {
       const data = await response.json();
 
       if (data.success && data.smsStatus === "sent") {
-        alert(`✅ SMS Reminder sent successfully to ${appointment.full_name} at ${appointment.phone}`);
+        toast.success("Reminder sent", {
+          description: `SMS delivered to ${appointment.full_name}.`,
+        });
         fetchAppointments();
       } else if (data.smsStatus === "logged") {
-        alert(`⚠️ Reminder logged (Twilio not configured)\n\nTo: ${data.phone}\nMessage: ${data.reminderMessage}\n\nCheck server console for details.`);
+        toast.warning("SMS provider not configured", {
+          description:
+            "Reminder was logged but no SMS was sent. Configure Twilio in production.",
+        });
         fetchAppointments();
       } else {
-        alert(`⚠️ ${data.message || "Reminder processed. Check server console for details."}`);
+        toast(
+          data.message ?? "Reminder processed. Check server logs for details."
+        );
         fetchAppointments();
       }
     } catch (error) {
       console.error("Error sending reminder:", error);
-      alert("❌ Error sending reminder. Please check the console for details.");
+      toast.error("Reminder could not be sent", {
+        description: "Network error. Please try again.",
+      });
+    } finally {
+      setReminderPendingId(null);
     }
   };
 
@@ -118,23 +150,16 @@ export default function BranchAppointmentsPage() {
     return matchesFilter && matchesSearch;
   });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Appointments</h1>
-          <p className="text-muted-foreground">View and manage appointments for {branchNames[branch] || branch}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Appointments</h1>
+          <p className="text-sm sm:text-base text-muted-foreground break-words">
+            View and manage appointments for {branchNames[branch] || branch}
+          </p>
         </div>
-        <Button asChild>
+        <Button asChild className="self-start sm:self-auto">
           <Link href={`/dashboard/${branch}/appointments/new`}>
             <Calendar className="mr-2 h-4 w-4" />
             Schedule Appointment
@@ -142,14 +167,13 @@ export default function BranchAppointmentsPage() {
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6 border-0 bg-card/50 backdrop-blur-sm">
-        <CardContent className="p-6">
+      <Card className="border-0 bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-4 sm:p-6">
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-medium mb-2 block">Search</label>
               <Input
-                placeholder="Search by name, phone, or email..."
+                placeholder="Search by name, phone, or email…"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -167,12 +191,11 @@ export default function BranchAppointmentsPage() {
         </CardContent>
       </Card>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <Card className="border-0 bg-card/50 backdrop-blur-sm">
           <CardContent className="p-4">
             <div className="text-2xl font-bold">{appointments.length}</div>
-            <div className="text-sm text-muted-foreground">Total Appointments</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Total</div>
           </CardContent>
         </Card>
         <Card className="border-0 bg-card/50 backdrop-blur-sm">
@@ -180,7 +203,7 @@ export default function BranchAppointmentsPage() {
             <div className="text-2xl font-bold">
               {appointments.filter((a) => a.preferred_date === new Date().toISOString().split("T")[0]).length}
             </div>
-            <div className="text-sm text-muted-foreground">Today</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Today</div>
           </CardContent>
         </Card>
         <Card className="border-0 bg-card/50 backdrop-blur-sm">
@@ -188,64 +211,80 @@ export default function BranchAppointmentsPage() {
             <div className="text-2xl font-bold">
               {appointments.filter((a) => a.is_unity_student).length}
             </div>
-            <div className="text-sm text-muted-foreground">Unity Students</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Unity</div>
           </CardContent>
         </Card>
         <Card className="border-0 bg-card/50 backdrop-blur-sm">
           <CardContent className="p-4">
             <div className="text-2xl font-bold">{filteredAppointments.length}</div>
-            <div className="text-sm text-muted-foreground">Filtered Results</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">Filtered</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Appointments List */}
       <div className="space-y-4">
-        {filteredAppointments.length === 0 ? (
-          <Card className="border-0 bg-card/50 backdrop-blur-sm">
-            <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No appointments found</p>
-            </CardContent>
-          </Card>
+        {status === "loading" ? (
+          <LoadingState title="Loading appointments…" />
+        ) : status === "forbidden" ? (
+          <ForbiddenState description="You don't have permission to view appointments for this branch." />
+        ) : status === "error" ? (
+          <ErrorState
+            description="We couldn't load appointments."
+            action={{ label: "Retry", onClick: fetchAppointments }}
+          />
+        ) : filteredAppointments.length === 0 ? (
+          <EmptyState
+            title="No appointments match your filters"
+            description="Try clearing the search or switching to All Appointments."
+          />
         ) : (
           filteredAppointments.map((appointment) => (
             <Card key={appointment.id} className="border-0 bg-card/50 backdrop-blur-sm">
               <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <CardTitle className="text-xl">{appointment.full_name}</CardTitle>
+                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                      <CardTitle className="text-lg sm:text-xl break-words">
+                        {appointment.full_name}
+                      </CardTitle>
                       {appointment.is_unity_student && (
                         <Badge className="bg-primary/20 text-primary">Unity Student</Badge>
                       )}
                     </div>
-                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <a href={`tel:${appointment.phone}`} className="hover:text-primary">
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Phone className="h-4 w-4 shrink-0" />
+                        <a href={`tel:${appointment.phone}`} className="truncate hover:text-primary">
                           {appointment.phone}
                         </a>
                       </div>
                       {appointment.email && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4" />
-                          <a href={`mailto:${appointment.email}`} className="hover:text-primary">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <Mail className="h-4 w-4 shrink-0" />
+                          <a
+                            href={`mailto:${appointment.email}`}
+                            className="truncate hover:text-primary"
+                          >
                             {appointment.email}
                           </a>
                         </div>
                       )}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <MapPin className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{branchNames[appointment.branch]}</span>
+                      </div>
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
+                        <Calendar className="h-4 w-4 shrink-0" />
                         {new Date(appointment.preferred_date).toLocaleDateString()}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
+                        <Clock className="h-4 w-4 shrink-0" />
                         {appointment.preferred_time}
                       </div>
                       {appointment.reason && (
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          {appointment.reason}
+                        <div className="flex items-center gap-2 min-w-0">
+                          <User className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{appointment.reason}</span>
                         </div>
                       )}
                     </div>
@@ -254,16 +293,17 @@ export default function BranchAppointmentsPage() {
                     onClick={() => sendReminder(appointment)}
                     variant="outline"
                     size="sm"
-                    className="ml-4"
+                    disabled={reminderPendingId === appointment.id}
+                    className="self-start lg:ml-4 lg:self-auto"
                   >
                     <Send className="h-4 w-4 mr-2" />
-                    Send Reminder
+                    {reminderPendingId === appointment.id ? "Sending…" : "Send Reminder"}
                   </Button>
                 </div>
               </CardHeader>
               {appointment.notes && (
                 <CardContent>
-                  <div className="text-sm">
+                  <div className="text-sm break-words">
                     <strong>Notes:</strong> {appointment.notes}
                   </div>
                 </CardContent>
@@ -272,7 +312,7 @@ export default function BranchAppointmentsPage() {
           ))
         )}
       </div>
+      <ConfirmDialog />
     </div>
   );
 }
-

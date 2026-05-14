@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import { ArrowLeft, Calendar, Clock } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 
 const timeSlots = [
   "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
@@ -52,14 +53,20 @@ export default function NewAppointmentPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Appointment scheduled successfully!");
+        toast.success("Appointment scheduled", {
+          description: `Booked for ${formData.full_name} on ${formData.preferred_date} at ${formData.preferred_time}.`,
+        });
         router.push(`/dashboard/${branch}/appointments`);
       } else {
-        alert(`Error: ${data.error || "Failed to schedule appointment"}`);
+        toast.error("Could not schedule appointment", {
+          description: data.error || "Please check the form and try again.",
+        });
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("An error occurred. Please try again.");
+      toast.error("Network error", {
+        description: "Please try again.",
+      });
     } finally {
       setLoading(false);
     }

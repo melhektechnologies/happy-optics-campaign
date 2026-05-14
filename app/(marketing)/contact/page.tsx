@@ -1,60 +1,26 @@
-"use client";
-
-import { useState } from "react";
+import type { Metadata } from "next";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Phone, Mail, MapPin, Clock, Send } from "lucide-react";
+import { Phone, Mail, MapPin, Clock } from "lucide-react";
+import { ContactForm } from "./contact-form";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description:
+    "Contact Happy Optics Optometry Clinic in Addis Ababa. Phone, email, address, and direct contact form for appointments and questions.",
+  alternates: { canonical: "/contact" },
+  openGraph: {
+    title: "Contact Happy Optics",
+    description: "Get in touch with our team in Addis Ababa.",
+    url: "/contact",
+  },
+};
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage(null);
-    try {
-      const res = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(formData),
-      });
-      if (res.ok) {
-        setIsSuccess(true);
-        setFormData({ name: "", email: "", phone: "", message: "" });
-      } else {
-        const data = (await res.json().catch(() => null)) as
-          | { error?: string }
-          | null;
-        setErrorMessage(
-          data?.error ||
-            "We couldn't send your message. Please try again or call us."
-        );
-      }
-    } catch {
-      setErrorMessage("Network error. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <>
-      {/* Hero */}
       <Section className="bg-gradient-to-br from-primary/5 via-background to-accent/5">
         <Container>
           <div className="mx-auto max-w-3xl text-center">
@@ -69,7 +35,6 @@ export default function ContactPage() {
         </Container>
       </Section>
 
-      {/* Contact Info */}
       <Section>
         <Container>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-12">
@@ -77,7 +42,7 @@ export default function ContactPage() {
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <Phone className="h-6 w-6 text-primary" />
+                    <Phone className="h-6 w-6 text-primary" aria-hidden />
                   </div>
                 </div>
                 <h3 className="mb-2 font-semibold">Phone</h3>
@@ -99,7 +64,7 @@ export default function ContactPage() {
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <Mail className="h-6 w-6 text-primary" />
+                    <Mail className="h-6 w-6 text-primary" aria-hidden />
                   </div>
                 </div>
                 <h3 className="mb-2 font-semibold">Email</h3>
@@ -116,7 +81,7 @@ export default function ContactPage() {
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <MapPin className="h-6 w-6 text-primary" />
+                    <MapPin className="h-6 w-6 text-primary" aria-hidden />
                   </div>
                 </div>
                 <h3 className="mb-2 font-semibold">Address</h3>
@@ -130,7 +95,7 @@ export default function ContactPage() {
               <CardContent className="p-6">
                 <div className="mb-4 flex justify-center">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                    <Clock className="h-6 w-6 text-primary" />
+                    <Clock className="h-6 w-6 text-primary" aria-hidden />
                   </div>
                 </div>
                 <h3 className="mb-2 font-semibold">Hours</h3>
@@ -143,7 +108,6 @@ export default function ContactPage() {
         </Container>
       </Section>
 
-      {/* Contact Form */}
       <Section className="bg-muted/50">
         <Container>
           <div className="mx-auto max-w-2xl">
@@ -152,64 +116,7 @@ export default function ContactPage() {
                 <CardTitle>Send Us a Message</CardTitle>
               </CardHeader>
               <CardContent>
-                {isSuccess ? (
-                  <div className="rounded-md bg-primary/10 p-4 text-center text-sm text-primary">
-                    Thank you for your message! We&apos;ll get back to you soon.
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    {errorMessage && (
-                      <div
-                        role="alert"
-                        className="rounded-md bg-destructive/10 p-3 text-sm text-destructive"
-                      >
-                        {errorMessage}
-                      </div>
-                    )}
-                    <div>
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="message">Message</Label>
-                      <Textarea
-                        id="message"
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        rows={6}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                      <Send className="mr-2 h-4 w-4" />
-                      Send Message
-                    </Button>
-                  </form>
-                )}
+                <ContactForm />
               </CardContent>
             </Card>
           </div>
@@ -218,4 +125,3 @@ export default function ContactPage() {
     </>
   );
 }
-

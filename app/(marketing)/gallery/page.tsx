@@ -4,46 +4,55 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { GalleryImage } from "@/components/gallery-image";
 
-export const metadata = {
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
   title: "Gallery",
-  description: "View photos of Happy Optics Optometry Clinic - Our facilities, eyewear collection, and clinic atmosphere.",
+  description:
+    "Browse photos of Happy Optics Optometry Clinic in Addis Ababa — our facilities, premium eyewear collection, and clinic atmosphere.",
+  alternates: { canonical: "/gallery" },
+  openGraph: {
+    title: "Happy Optics — Gallery",
+    description: "Inside our Addis Ababa optometry clinics.",
+    url: "/gallery",
+  },
 };
 
 // Gallery items from brand folder
 const galleryItems = [
   {
-    src: "/brand/galley 1.jpeg",
-    alt: "Happy Optics Gallery 1",
+    src: "/brand/galley 1.webp",
+    alt: "Inside the Happy Optics clinic — reception area",
     title: "Our Clinic",
     category: "Facilities",
   },
   {
-    src: "/brand/galley 2.jpeg",
-    alt: "Happy Optics Gallery 2",
+    src: "/brand/galley 2.webp",
+    alt: "Optometrist performing an eye exam at Happy Optics",
     title: "Our Services",
     category: "Services",
   },
   {
-    src: "/brand/galley 3.jpg",
-    alt: "Happy Optics Gallery 3",
+    src: "/brand/galley 3.webp",
+    alt: "Premium eyewear frames on display at Happy Optics",
     title: "Premium Eyewear",
     category: "Products",
   },
   {
-    src: "/brand/galley 4.jpeg",
-    alt: "Happy Optics Gallery 4",
+    src: "/brand/galley 4.webp",
+    alt: "Happy Optics staff providing expert eye care",
     title: "Expert Care",
     category: "Services",
   },
   {
-    src: "/brand/galley 5.jpeg",
-    alt: "Happy Optics Gallery 5",
+    src: "/brand/galley 5.webp",
+    alt: "Modern examination room at Happy Optics",
     title: "Modern Facilities",
     category: "Facilities",
   },
   {
-    src: "/brand/galley 6.jpg",
-    alt: "Happy Optics Gallery 6",
+    src: "/brand/galley 6.webp",
+    alt: "Customer service area at Happy Optics",
     title: "Quality Service",
     category: "Services",
   },

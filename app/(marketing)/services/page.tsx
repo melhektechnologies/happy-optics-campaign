@@ -1,13 +1,9 @@
-"use client";
-
+import type { Metadata } from "next";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
-import { ServiceCard } from "@/components/service-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PremiumButton } from "@/components/premium-button";
-import { ScrollAnimation } from "@/components/scroll-animation";
-import { FrameTryOn } from "@/components/frame-try-on";
 import Link from "next/link";
 import { 
   Eye, 
@@ -20,8 +16,17 @@ import {
   Sparkles
 } from "lucide-react";
 
-// Note: Metadata is handled in the layout.tsx (server component)
-// This page is a client component for animations, so metadata cannot be exported here
+export const metadata: Metadata = {
+  title: "Services — Eye Exams, Glasses, Contacts, Coatings",
+  description:
+    "Comprehensive optometry services in Addis Ababa: eye exams, glasses fitting, contact lenses, progressive and blue-cut lenses, and premium frames.",
+  alternates: { canonical: "/services" },
+  openGraph: {
+    title: "Happy Optics — Services",
+    description: "Comprehensive eye care services and premium eyewear in Addis Ababa.",
+    url: "/services",
+  },
+};
 
 const services = [
   {

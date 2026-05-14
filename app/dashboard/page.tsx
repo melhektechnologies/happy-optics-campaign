@@ -14,13 +14,15 @@ import {
   FileText,
   BarChart3,
   Eye,
-  Download,
   RefreshCw,
   Home,
   TrendingUp
 } from "lucide-react";
 import Link from "next/link";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import {
+  AppointmentsByBranchChart,
+  AppointmentsTrendChart,
+} from "@/components/dashboard/lazy-charts";
 
 interface ActivityItem {
   type: string;
@@ -50,7 +52,7 @@ interface Analytics {
   appointmentsByDate: { date: string; count: number }[];
 }
 
-const COLORS = ['#0d7377', '#14b8a6', '#0a5d61', '#1a1a1a'];
+
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
@@ -276,25 +278,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 {analytics.appointmentsByBranch && analytics.appointmentsByBranch.length > 0 && analytics.appointmentsByBranch.some((b) => b.count > 0) ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={analytics.appointmentsByBranch}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="count"
-                      >
-                        {analytics.appointmentsByBranch.map((_entry, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <AppointmentsByBranchChart data={analytics.appointmentsByBranch} />
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-muted-foreground">
                     No appointment data yet
@@ -309,16 +293,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 {analytics.appointmentsByDate && analytics.appointmentsByDate.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={analytics.appointmentsByDate}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="count" stroke="#0d7377" strokeWidth={2} name="Appointments" />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  <AppointmentsTrendChart data={analytics.appointmentsByDate} />
                 ) : (
                   <div className="flex items-center justify-center h-[300px] text-muted-foreground">
                     No appointment data yet

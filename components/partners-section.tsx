@@ -4,7 +4,6 @@ import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PremiumButton } from "@/components/premium-button";
 import { ScrollAnimation } from "@/components/scroll-animation";
 import { Building2 } from "lucide-react";
 import { motion } from "framer-motion";

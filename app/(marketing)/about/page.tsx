@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
@@ -5,9 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Target, Lightbulb, Heart, Users, Award } from "lucide-react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "About Us",
-  description: "Learn about Happy Optics Optometry Clinic - Our story, mission, vision, and commitment to excellence in eye care since 2003 E.C.",
+  description:
+    "Learn about Happy Optics Optometry Clinic — our story, mission, vision, and commitment to excellence in eye care since 2003 E.C.",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "About Happy Optics",
+    description: "Four branches across Addis Ababa, serving Ethiopia since 2003 E.C.",
+    url: "/about",
+  },
 };
 
 export default function AboutPage() {
@@ -35,9 +43,10 @@ export default function AboutPage() {
           <div className="grid gap-12 lg:grid-cols-2 items-center">
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-xl">
               <Image
-                src="/brand/clinic.png"
-                alt="Happy Optics Clinic"
+                src="/brand/clinic.webp"
+                alt="Happy Optics Optometry Clinic exterior in Addis Ababa"
                 fill
+                sizes="(max-width: 1024px) 100vw, 512px"
                 className="object-cover"
               />
             </div>
@@ -205,9 +214,10 @@ export default function AboutPage() {
             </div>
             <div className="relative aspect-[16/10] overflow-hidden rounded-2xl shadow-2xl">
               <Image
-                src="/brand/team.png"
-                alt="Happy Optics Team"
+                src="/brand/team.webp"
+                alt="The Happy Optics optometry team at our Addis Ababa clinic"
                 fill
+                sizes="(max-width: 1024px) 100vw, 1024px"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
