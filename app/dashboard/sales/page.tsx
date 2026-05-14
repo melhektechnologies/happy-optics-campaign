@@ -15,7 +15,7 @@ import {
   Calendar,
   TrendingUp
 } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { SalesTrendChart } from "@/components/dashboard/lazy-charts";
 
 interface Sale {
   id: string;
@@ -148,16 +148,7 @@ export default function SalesPage() {
             <CardTitle>Sales Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={chartDataArray}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="amount" stroke="#0d7377" strokeWidth={2} name="Revenue ($)" />
-              </LineChart>
-            </ResponsiveContainer>
+            <SalesTrendChart data={chartDataArray} />
           </CardContent>
         </Card>
       )}

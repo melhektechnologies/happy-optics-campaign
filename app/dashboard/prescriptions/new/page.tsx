@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, FileText } from "lucide-react";
-import Link from "next/link";
 
 interface Patient {
   id: string;
@@ -56,7 +56,7 @@ export default function NewPrescriptionPage() {
       const data = await response.json();
 
       if (response.ok) {
-        // Check if we're in manager context
+        toast.success("Prescription saved");
         const currentPath = window.location.pathname;
         if (currentPath.includes("/manager/")) {
           router.push("/dashboard/manager/prescriptions");
@@ -64,10 +64,10 @@ export default function NewPrescriptionPage() {
           router.push("/dashboard/prescriptions");
         }
       } else {
-        setError(data.error || "Failed to create prescription");
+        setError(data.error || "Could not save prescription.");
       }
-    } catch (error) {
-      setError("An error occurred. Please try again.");
+    } catch {
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ export default function NewPrescriptionPage() {
           <CardTitle>Prescription Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label htmlFor="patient_id">Patient *</Label>
@@ -226,7 +226,10 @@ export default function NewPrescriptionPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div
+                className="text-sm text-destructive bg-destructive/10 p-3 rounded-md"
+                role="alert"
+              >
                 {error}
               </div>
             )}

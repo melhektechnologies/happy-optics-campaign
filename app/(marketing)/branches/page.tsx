@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { BranchCard } from "@/components/branch-card";
@@ -5,9 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Our Branches",
-  description: "Find Happy Optics Optometry Clinic locations across Addis Ababa. Visit us at our Head Office, Bole, Kera Downtown, or Betezatha branches.",
+  description:
+    "Find Happy Optics Optometry Clinic locations across Addis Ababa: Head Office, Bole, Kera Downtown, and Betezatha.",
+  alternates: { canonical: "/branches" },
+  openGraph: {
+    title: "Happy Optics — Branches",
+    description: "Four convenient locations across Addis Ababa.",
+    url: "/branches",
+  },
 };
 
 const branches = [

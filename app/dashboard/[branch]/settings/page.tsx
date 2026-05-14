@@ -2,29 +2,31 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Save,
-  Bell,
-  Shield,
-  Mail,
-  Eye,
-  EyeOff
-} from "lucide-react";
+import { Shield, Mail, Eye, EyeOff } from "lucide-react";
+
+// Clinic-wide contact info is static for now; fake notification toggles
+// and the "Save Changes" button have been removed. Password change is real.
+const CLINIC_INFO = {
+  email: "happy.optics21@gmail.com",
+  phone: "+251-115584293",
+  address: "Addis Ababa Stadium, Yeha City Center",
+};
+
+const BRANCH_NAMES: Record<string, string> = {
+  "head-office": "Head Office - Addis Ababa Stadium",
+  "bole": "Bole Branch - Near Waga Eye Centre",
+  "kera": "Kera Downtown - Near Neser Eye Clinic",
+  "bethzatha": "Betezatha - Inside Betezatha General Hospital",
+};
 
 export default function BranchSettingsPage() {
   const params = useParams();
   const branch = params.branch as string;
-  const [settings, setSettings] = useState({
-    email: "happy.optics21@gmail.com",
-    phone: "+251-115584293",
-    address: "Addis Ababa Stadium, Yeha City Center",
-    notifications: true,
-    reminders: true,
-  });
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -38,25 +40,18 @@ export default function BranchSettingsPage() {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
-
-  const handleSave = () => {
-    // Save settings to API
-    alert("Settings saved successfully!");
-  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError("");
-    setPasswordSuccess("");
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError("New passwords do not match");
+      setPasswordError("New passwords do not match.");
       return;
     }
 
-    if (passwordData.newPassword.length < 6) {
-      setPasswordError("Password must be at least 6 characters");
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError("New password must be at least 8 characters.");
       return;
     }
 
@@ -76,17 +71,19 @@ export default function BranchSettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setPasswordSuccess("Password changed successfully!");
+        toast.success("Password updated", {
+          description: "Your password was changed successfully.",
+        });
         setPasswordData({
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
         });
       } else {
-        setPasswordError(data.error || "Failed to change password");
+        setPasswordError(data.error || "Could not change password.");
       }
-    } catch (error) {
-      setPasswordError("An error occurred. Please try again.");
+    } catch {
+      setPasswordError("Network error. Please try again.");
     } finally {
       setPasswordLoading(false);
     }
@@ -95,93 +92,38 @@ export default function BranchSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your account settings</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-sm sm:text-base text-muted-foreground break-words">
+          {BRANCH_NAMES[branch] || branch}
+        </p>
       </div>
 
-      {/* Contact Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            Contact Information
+            Clinic Contact Information
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={settings.email}
-              onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-            />
+            <Label>Email</Label>
+            <Input value={CLINIC_INFO.email} readOnly disabled />
           </div>
           <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={settings.phone}
-              onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-            />
+            <Label>Phone</Label>
+            <Input value={CLINIC_INFO.phone} readOnly disabled />
           </div>
           <div>
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              value={settings.address}
-              onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-            />
+            <Label>Address</Label>
+            <Input value={CLINIC_INFO.address} readOnly disabled />
           </div>
-          <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Changes
-          </Button>
+          <p className="text-xs text-muted-foreground">
+            Clinic info is read-only here. Contact your manager to update it.
+          </p>
         </CardContent>
       </Card>
 
-      {/* Notifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Email Notifications</Label>
-              <p className="text-sm text-muted-foreground">Receive email notifications</p>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.notifications}
-              onChange={(e) => setSettings({ ...settings, notifications: e.target.checked })}
-              className="rounded"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label>Appointment Reminders</Label>
-              <p className="text-sm text-muted-foreground">Send appointment reminders</p>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.reminders}
-              onChange={(e) => setSettings({ ...settings, reminders: e.target.checked })}
-              className="rounded"
-            />
-          </div>
-          <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Changes
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Change Password */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -190,7 +132,7 @@ export default function BranchSettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
+          <form onSubmit={handlePasswordChange} className="space-y-4" noValidate>
             <div>
               <Label htmlFor="currentPassword">Current Password</Label>
               <div className="relative">
@@ -201,23 +143,18 @@ export default function BranchSettingsPage() {
                   onChange={(e) =>
                     setPasswordData({ ...passwordData, currentPassword: e.target.value })
                   }
+                  className="pr-10"
                   required
+                  autoComplete="current-password"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() =>
-                    setShowPasswords({ ...showPasswords, current: !showPasswords.current })
-                  }
+                  aria-label={showPasswords.current ? "Hide current password" : "Show current password"}
+                  onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
-                  {showPasswords.current ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+                  {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
             <div>
@@ -230,24 +167,24 @@ export default function BranchSettingsPage() {
                   onChange={(e) =>
                     setPasswordData({ ...passwordData, newPassword: e.target.value })
                   }
+                  className="pr-10"
                   required
+                  minLength={8}
+                  autoComplete="new-password"
+                  aria-describedby="newPassword-hint"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() =>
-                    setShowPasswords({ ...showPasswords, new: !showPasswords.new })
-                  }
+                  aria-label={showPasswords.new ? "Hide new password" : "Show new password"}
+                  onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
-                  {showPasswords.new ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+                  {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
+              <p id="newPassword-hint" className="text-xs text-muted-foreground mt-1">
+                Must be at least 8 characters.
+              </p>
             </div>
             <div>
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
@@ -259,38 +196,28 @@ export default function BranchSettingsPage() {
                   onChange={(e) =>
                     setPasswordData({ ...passwordData, confirmPassword: e.target.value })
                   }
+                  className="pr-10"
                   required
+                  autoComplete="new-password"
                 />
-                <Button
+                <button
                   type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-0 top-0 h-full"
-                  onClick={() =>
-                    setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })
-                  }
+                  aria-label={showPasswords.confirm ? "Hide confirmation password" : "Show confirmation password"}
+                  onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
+                  className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
-                  {showPasswords.confirm ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
+                  {showPasswords.confirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
             </div>
             {passwordError && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">
                 {passwordError}
-              </div>
-            )}
-            {passwordSuccess && (
-              <div className="text-sm text-green-600 bg-green-50 p-3 rounded-md">
-                {passwordSuccess}
               </div>
             )}
             <Button type="submit" disabled={passwordLoading}>
               <Shield className="mr-2 h-4 w-4" />
-              {passwordLoading ? "Changing..." : "Change Password"}
+              {passwordLoading ? "Updating…" : "Change Password"}
             </Button>
           </form>
         </CardContent>
@@ -298,4 +225,3 @@ export default function BranchSettingsPage() {
     </div>
   );
 }
-

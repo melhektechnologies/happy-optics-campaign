@@ -1,29 +1,29 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Save,
+import {
   Building2,
-  Bell,
   Shield,
   Mail,
   Eye,
-  EyeOff
+  EyeOff,
 } from "lucide-react";
 
-export default function SettingsPage() {
-  const [settings, setSettings] = useState({
-    email: "happy.optics21@gmail.com",
-    phone: "+251-115584293",
-    address: "Addis Ababa Stadium, Yeha City Center",
-    notifications: true,
-    reminders: true,
-  });
+// Clinic-wide contact info is static for now; notification toggles and
+// the "Save Settings" button were fake (no backing API) and have been
+// removed. Password change is real.
+const CLINIC_INFO = {
+  email: "happy.optics21@gmail.com",
+  phone: "+251-115584293",
+  address: "Addis Ababa Stadium, Yeha City Center",
+};
 
+export default function SettingsPage() {
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -36,25 +36,18 @@ export default function SettingsPage() {
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
-  const [passwordSuccess, setPasswordSuccess] = useState("");
-
-  const handleSave = () => {
-    // Save settings to API
-    alert("Settings saved successfully!");
-  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError("");
-    setPasswordSuccess("");
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setPasswordError("New passwords do not match");
+      setPasswordError("New passwords do not match.");
       return;
     }
 
     if (passwordData.newPassword.length < 8) {
-      setPasswordError("New password must be at least 8 characters");
+      setPasswordError("New password must be at least 8 characters.");
       return;
     }
 
@@ -74,17 +67,19 @@ export default function SettingsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setPasswordSuccess("Password changed successfully!");
+        toast.success("Password updated", {
+          description: "Your password was changed successfully.",
+        });
         setPasswordData({
           currentPassword: "",
           newPassword: "",
           confirmPassword: "",
         });
       } else {
-        setPasswordError(data.error || "Failed to change password");
+        setPasswordError(data.error || "Could not change password.");
       }
-    } catch (error) {
-      setPasswordError("An error occurred. Please try again.");
+    } catch {
+      setPasswordError("Network error. Please try again.");
     } finally {
       setPasswordLoading(false);
     }
@@ -92,88 +87,37 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">Manage your clinic settings</p>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Settings</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Manage your account and view clinic info</p>
       </div>
 
-      {/* Contact Information */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
             <Mail className="h-5 w-5" />
-            <CardTitle>Contact Information</CardTitle>
+            <CardTitle>Clinic Contact Information</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={settings.email}
-              onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-            />
+            <Label>Email</Label>
+            <Input value={CLINIC_INFO.email} readOnly disabled />
           </div>
           <div>
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              value={settings.phone}
-              onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-            />
+            <Label>Phone</Label>
+            <Input value={CLINIC_INFO.phone} readOnly disabled />
           </div>
           <div>
-            <Label htmlFor="address">Address</Label>
-            <Input
-              id="address"
-              value={settings.address}
-              onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-            />
+            <Label>Address</Label>
+            <Input value={CLINIC_INFO.address} readOnly disabled />
           </div>
+          <p className="text-xs text-muted-foreground">
+            Clinic-wide contact info is set in code. Editing from the dashboard isn&apos;t available yet.
+          </p>
         </CardContent>
       </Card>
 
-      {/* Notification Settings */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            <CardTitle>Notifications</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="notifications">Email Notifications</Label>
-              <p className="text-sm text-muted-foreground">Receive email notifications for new appointments</p>
-            </div>
-            <input
-              type="checkbox"
-              id="notifications"
-              checked={settings.notifications}
-              onChange={(e) => setSettings({ ...settings, notifications: e.target.checked })}
-              className="h-4 w-4"
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="reminders">Appointment Reminders</Label>
-              <p className="text-sm text-muted-foreground">Send automatic reminders to patients</p>
-            </div>
-            <input
-              type="checkbox"
-              id="reminders"
-              checked={settings.reminders}
-              onChange={(e) => setSettings({ ...settings, reminders: e.target.checked })}
-              className="h-4 w-4"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Security Settings */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -182,7 +126,7 @@ export default function SettingsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handlePasswordChange} className="space-y-4">
+          <form onSubmit={handlePasswordChange} className="space-y-4" noValidate>
             <div>
               <Label htmlFor="currentPassword">Current Password</Label>
               <div className="relative">
@@ -195,9 +139,11 @@ export default function SettingsPage() {
                   }
                   className="pr-10"
                   required
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
+                  aria-label={showPasswords.current ? "Hide current password" : "Show current password"}
                   onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
@@ -218,16 +164,21 @@ export default function SettingsPage() {
                   className="pr-10"
                   required
                   minLength={8}
+                  autoComplete="new-password"
+                  aria-describedby="newPassword-hint"
                 />
                 <button
                   type="button"
+                  aria-label={showPasswords.new ? "Hide new password" : "Show new password"}
                   onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
                   {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Must be at least 8 characters</p>
+              <p id="newPassword-hint" className="text-xs text-muted-foreground mt-1">
+                Must be at least 8 characters.
+              </p>
             </div>
             <div>
               <Label htmlFor="confirmPassword">Confirm New Password</Label>
@@ -241,9 +192,11 @@ export default function SettingsPage() {
                   }
                   className="pr-10"
                   required
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
+                  aria-label={showPasswords.confirm ? "Hide confirmation password" : "Show confirmation password"}
                   onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
                   className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
                 >
@@ -252,31 +205,31 @@ export default function SettingsPage() {
               </div>
             </div>
             {passwordError && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md" role="alert">
                 {passwordError}
-              </div>
-            )}
-            {passwordSuccess && (
-              <div className="text-sm text-green-600 bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
-                {passwordSuccess}
               </div>
             )}
             <Button type="submit" disabled={passwordLoading}>
               <Shield className="mr-2 h-4 w-4" />
-              {passwordLoading ? "Changing Password..." : "Change Password"}
+              {passwordLoading ? "Updating…" : "Change Password"}
             </Button>
           </form>
         </CardContent>
       </Card>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>
-          <Save className="mr-2 h-4 w-4" />
-          Save Settings
-        </Button>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            <CardTitle>Branches</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Branch management is currently read-only. To add, edit, or deactivate a branch, contact your administrator.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-

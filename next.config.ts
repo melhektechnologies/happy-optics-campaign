@@ -56,6 +56,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Cache built images aggressively at the edge. We never re-deploy the
+  // same image path with different bytes; rotating an image always changes
+  // the path (the file is content-addressed by the team).
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+  },
   async headers() {
     return [
       {

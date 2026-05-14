@@ -1,14 +1,22 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Users, Calendar, Heart, ArrowRight, Eye, Sparkles } from "lucide-react";
+import { CheckCircle2, Heart, ArrowRight, Eye, Sparkles } from "lucide-react";
 
-export const metadata = {
-  title: "Unity University Campaign",
-  description: "Free eye check for Unity University students. Book your complimentary eye examination at Happy Optics Optometry Clinic.",
+export const metadata: Metadata = {
+  title: "Unity University Campaign — Free Eye Check",
+  description:
+    "Free eye check for Unity University students at Happy Optics Optometry Clinic in Addis Ababa.",
+  alternates: { canonical: "/unity" },
+  openGraph: {
+    title: "Unity University — Free Eye Check",
+    description: "Book your complimentary eye examination at Happy Optics.",
+    url: "/unity",
+  },
 };
 
 const faqs = [

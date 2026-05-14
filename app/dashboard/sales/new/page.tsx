@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, DollarSign } from "lucide-react";
-import Link from "next/link";
 
 interface Patient {
   id: string;
@@ -70,6 +70,9 @@ export default function NewSalePage() {
       const data = await response.json();
 
       if (response.ok) {
+        toast.success("Sale recorded", {
+          description: `${formData.total_amount} ETB recorded.`,
+        });
         const currentPath = window.location.pathname;
         if (currentPath.includes("/manager/")) {
           router.push("/dashboard/manager/sales");
@@ -77,10 +80,10 @@ export default function NewSalePage() {
           router.push("/dashboard/sales");
         }
       } else {
-        setError(data.error || "Failed to create sale");
+        setError(data.error || "Could not record sale.");
       }
     } catch {
-      setError("An error occurred. Please try again.");
+      setError("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -111,7 +114,7 @@ export default function NewSalePage() {
           <CardTitle>Sale Information</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <Label htmlFor="patient_id">Patient *</Label>
@@ -197,7 +200,10 @@ export default function NewSalePage() {
             </div>
 
             {error && (
-              <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+              <div
+                className="text-sm text-destructive bg-destructive/10 p-3 rounded-md"
+                role="alert"
+              >
                 {error}
               </div>
             )}
