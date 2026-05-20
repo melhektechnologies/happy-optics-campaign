@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +41,7 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     // Save settings to API
-    alert("Settings saved successfully!");
+    toast.success("Settings saved successfully!");
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {

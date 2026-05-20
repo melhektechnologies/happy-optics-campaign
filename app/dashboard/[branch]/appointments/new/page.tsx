@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,14 +52,14 @@ export default function NewAppointmentPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Appointment scheduled successfully!");
+        toast.success("Appointment scheduled successfully!");
         router.push(`/dashboard/${branch}/appointments`);
       } else {
-        alert(`Error: ${data.error || "Failed to schedule appointment"}`);
+        toast.error(`Error: ${data.error || "Failed to schedule appointment"}`);
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("An error occurred. Please try again.");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

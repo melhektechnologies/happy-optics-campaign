@@ -25,7 +25,7 @@ export async function sendAppointmentConfirmation({
   time: string;
   branch: string;
 }) {
-  const results: { email?: any; sms?: any } = {};
+  const results: { email?: unknown; sms?: unknown } = {};
 
   // 1. Send Email Notification via Resend
   if (email && process.env.RESEND_API_KEY) {

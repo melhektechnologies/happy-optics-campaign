@@ -21,7 +21,7 @@ export async function createAppointment(formData: z.infer<typeof appointmentSche
     // 1. Validate Input
     const validated = appointmentSchema.safeParse(formData);
     if (!validated.success) {
-      return { success: false, error: validated.error.errors[0].message };
+      return { success: false, error: validated.error.issues[0].message };
     }
 
     const data = validated.data;

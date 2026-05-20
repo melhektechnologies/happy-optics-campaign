@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,7 +43,7 @@ export default function BranchSettingsPage() {
 
   const handleSave = () => {
     // Save settings to API
-    alert("Settings saved successfully!");
+    toast.success("Settings saved successfully!");
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {

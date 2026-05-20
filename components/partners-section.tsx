@@ -4,7 +4,6 @@ import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PremiumButton } from "@/components/premium-button";
 import { ScrollAnimation } from "@/components/scroll-animation";
 import { Building2 } from "lucide-react";
 import { motion } from "framer-motion";
@@ -59,7 +58,7 @@ export function PartnersSection() {
               Valued Collaboration Partners
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              We're proud to collaborate with leading organizations across Ethiopia, 
+              We&apos;re proud to collaborate with leading organizations across Ethiopia, 
               enabling us to deliver exceptional service and expand our reach.
             </p>
           </div>

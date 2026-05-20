@@ -1,26 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth";
+import twilio from "twilio";
 
 // Twilio client (only initialize if credentials are available)
 let twilioClient: any = null;
-try {
-  if (
-    process.env.TWILIO_ACCOUNT_SID &&
-    process.env.TWILIO_AUTH_TOKEN &&
-    process.env.TWILIO_PHONE_NUMBER
-  ) {
-    const twilio = require("twilio");
+if (
+  process.env.TWILIO_ACCOUNT_SID &&
+  process.env.TWILIO_AUTH_TOKEN &&
+  process.env.TWILIO_PHONE_NUMBER
+) {
+  try {
     twilioClient = twilio(
       process.env.TWILIO_ACCOUNT_SID,
       process.env.TWILIO_AUTH_TOKEN
     );
+  } catch (error) {
+    console.log("Twilio initialization error:", error);
   }
-} catch (error) {
-  console.log("Twilio not configured, reminders will be logged only");
 }
 
 export async function POST(request: NextRequest) {
   try {
+    // 1. Secure Authentication Check
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const { appointmentId, phone, name, date, time, branch } = body;
 

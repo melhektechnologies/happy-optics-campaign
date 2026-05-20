@@ -55,7 +55,7 @@ export function LiveChatWidget() {
             <div className="flex items-center justify-between border-b border-border bg-primary p-4 text-primary-foreground">
               <div>
                 <h3 className="font-semibold">Happy Optics Support</h3>
-                <p className="text-xs opacity-90">We're here to help</p>
+                <p className="text-xs opacity-90">We&apos;re here to help</p>
               </div>
               <button
                 onClick={() => setIsOpen(false)}

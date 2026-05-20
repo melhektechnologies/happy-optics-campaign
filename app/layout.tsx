@@ -1,21 +1,7 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-
-const poppins = Poppins({
-  variable: "--font-poppins",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -52,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${poppins.variable} ${inter.variable} antialiased selection:bg-primary/30 selection:text-white`}
+        className="antialiased selection:bg-primary/30 selection:text-white"
       >
         <ThemeProvider>
           {/* Cinematic Atmospheric Effects */}
@@ -64,6 +50,7 @@ export default function RootLayout({
           
           <div className="relative z-10">
             {children}
+            <Toaster richColors position="top-right" />
           </div>
         </ThemeProvider>
       </body>

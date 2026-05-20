@@ -14,7 +14,20 @@ import {
   Calendar,
   TrendingUp
 } from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import dynamic from "next/dynamic";
+
+const LineChart = dynamic(() => import("recharts").then((mod) => mod.LineChart), { ssr: false });
+const Line = dynamic(() => import("recharts").then((mod) => mod.Line), { ssr: false });
+const BarChart = dynamic(() => import("recharts").then((mod) => mod.BarChart), { ssr: false });
+const Bar = dynamic(() => import("recharts").then((mod) => mod.Bar), { ssr: false });
+const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import("recharts").then((mod) => mod.CartesianGrid), { ssr: false });
+const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false });
+const Legend = dynamic(() => import("recharts").then((mod) => mod.Legend), { ssr: false });
+const ResponsiveContainer = dynamic(() => import("recharts").then((mod) => mod.ResponsiveContainer), { ssr: false });
+
+import { Select } from "@/components/ui/select";
 
 interface Sale {
   id: string;
@@ -113,55 +126,71 @@ export default function SalesPage() {
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="premium-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">From {filteredSales.length} sales</p>
+            <div className="text-3xl font-bold tracking-tight text-foreground">${totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground mt-1">From {filteredSales.length} sales</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="premium-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Sale</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Average Sale</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${averageSale.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">Per transaction</p>
+            <div className="text-3xl font-bold tracking-tight text-foreground">${averageSale.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Per transaction</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="premium-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredSales.length}</div>
-            <p className="text-xs text-muted-foreground">Transactions</p>
+            <div className="text-3xl font-bold tracking-tight text-foreground">{filteredSales.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Transactions</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Chart */}
       {chartDataArray.length > 0 && (
-        <Card>
+        <Card className="border border-border/80 bg-card/60 backdrop-blur-xs">
           <CardHeader>
-            <CardTitle>Sales Trend</CardTitle>
+            <CardTitle className="text-base font-semibold">Sales Trend</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={chartDataArray}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="amount" stroke="#0d7377" strokeWidth={2} name="Revenue ($)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+                <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: 'var(--card)',
+                    borderColor: 'var(--border)',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                  }}
+                  labelStyle={{ color: 'var(--muted-foreground)', fontSize: 11 }}
+                  itemStyle={{ color: 'var(--foreground)' }}
+                />
+                <Legend verticalAlign="top" height={36} iconType="circle" />
+                <Line 
+                  type="monotone" 
+                  dataKey="amount" 
+                  stroke="#0d7377" 
+                  strokeWidth={3} 
+                  activeDot={{ r: 6 }} 
+                  name="Revenue ($)" 
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -169,7 +198,7 @@ export default function SalesPage() {
       )}
 
       {/* Filters */}
-      <Card>
+      <Card className="border border-border/60 bg-card/40 backdrop-blur-xs">
         <CardContent className="p-4">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="flex items-center gap-2">
@@ -181,16 +210,15 @@ export default function SalesPage() {
               />
             </div>
             <div>
-              <select
+              <Select
                 value={dateRange}
                 onChange={(e) => setDateRange(e.target.value as any)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
               >
                 <option value="today">Today</option>
                 <option value="week">This Week</option>
                 <option value="month">This Month</option>
                 <option value="all">All Time</option>
-              </select>
+              </Select>
             </div>
           </div>
         </CardContent>

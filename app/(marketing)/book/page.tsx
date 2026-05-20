@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
@@ -138,7 +139,7 @@ function BookPageContent() {
                 shortly to confirm your preferred date and time.
               </p>
               <Button asChild>
-                <a href="/">Return to Home</a>
+                <Link href="/">Return to Home</Link>
               </Button>
             </CardContent>
           </Card>

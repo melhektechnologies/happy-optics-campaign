@@ -19,7 +19,20 @@ import {
   TrendingUp
 } from "lucide-react";
 import Link from "next/link";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import dynamic from "next/dynamic";
+
+// Dynamically load heavy charting libraries to optimize initial render speed
+const LineChart = dynamic(() => import("recharts").then((mod) => mod.LineChart), { ssr: false });
+const Line = dynamic(() => import("recharts").then((mod) => mod.Line), { ssr: false });
+const XAxis = dynamic(() => import("recharts").then((mod) => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import("recharts").then((mod) => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import("recharts").then((mod) => mod.CartesianGrid), { ssr: false });
+const Tooltip = dynamic(() => import("recharts").then((mod) => mod.Tooltip), { ssr: false });
+const Legend = dynamic(() => import("recharts").then((mod) => mod.Legend), { ssr: false });
+const ResponsiveContainer = dynamic(() => import("recharts").then((mod) => mod.ResponsiveContainer), { ssr: false });
+const PieChart = dynamic(() => import("recharts").then((mod) => mod.PieChart), { ssr: false });
+const Pie = dynamic(() => import("recharts").then((mod) => mod.Pie), { ssr: false });
+const Cell = dynamic(() => import("recharts").then((mod) => mod.Cell), { ssr: false });
 
 interface DashboardStats {
   totalPatients: number;
@@ -166,40 +179,40 @@ export default function ManagerDashboardPage() {
           {/* Summary Cards */}
           <div className="grid gap-4 md:grid-cols-3">
             <Link href="/dashboard/manager/patients" className="block">
-              <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 h-full">
+              <Card className="premium-card cursor-pointer h-full">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Patients</CardTitle>
+                  <Users className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalPatients}</div>
-                  <p className="text-xs text-muted-foreground">All registered patients</p>
+                  <div className="text-3xl font-bold tracking-tight text-foreground">{stats.totalPatients}</div>
+                  <p className="text-xs text-muted-foreground mt-1">All registered patients</p>
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/dashboard/manager/appointments" className="block">
-              <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 h-full">
+              <Card className="premium-card cursor-pointer h-full">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Today Appointments</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Today Appointments</CardTitle>
+                  <Calendar className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.todayAppointments}</div>
-                  <p className="text-xs text-muted-foreground">Scheduled for today</p>
+                  <div className="text-3xl font-bold tracking-tight text-foreground">{stats.todayAppointments}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Scheduled for today</p>
                 </CardContent>
               </Card>
             </Link>
 
             <Link href="/dashboard/manager/sales" className="block">
-              <Card className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] hover:border-primary/50 h-full">
+              <Card className="premium-card cursor-pointer h-full">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Monthly Sales</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Monthly Sales</CardTitle>
+                  <DollarSign className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">${stats.monthlySales.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">This month's revenue</p>
+                  <div className="text-3xl font-bold tracking-tight text-foreground">${stats.monthlySales.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1">This month's revenue</p>
                 </CardContent>
               </Card>
             </Link>
@@ -208,48 +221,48 @@ export default function ManagerDashboardPage() {
           {/* Manager-only Analytics Cards */}
           {analytics && (
             <div className="grid gap-4 md:grid-cols-4">
-              <Card>
+              <Card className="premium-card">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Website Visits</CardTitle>
-                  <Eye className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Website Visits</CardTitle>
+                  <Eye className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{analytics.totalVisits.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Total visits</p>
+                  <div className="text-2xl font-bold tracking-tight">{analytics.totalVisits.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Total visits</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="premium-card">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Unique Visitors</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Unique Visitors</CardTitle>
+                  <Users className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{analytics.uniqueVisitors.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Unique users</p>
+                  <div className="text-2xl font-bold tracking-tight">{analytics.uniqueVisitors.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Unique users</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="premium-card">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Page Views</CardTitle>
-                  <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Page Views</CardTitle>
+                  <BarChart3 className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{analytics.pageViews.toLocaleString()}</div>
-                  <p className="text-xs text-muted-foreground">Total page views</p>
+                  <div className="text-2xl font-bold tracking-tight">{analytics.pageViews.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Total page views</p>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="premium-card">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Conversion Rate</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold tracking-tight">
                     {typeof analytics.conversionRate === 'number' 
                       ? analytics.conversionRate.toFixed(1) 
                       : parseFloat(analytics.conversionRate || '0').toFixed(1)}%
                   </div>
-                  <p className="text-xs text-muted-foreground">Visit to appointment</p>
+                  <p className="text-xs text-muted-foreground mt-1">Visit to appointment</p>
                 </CardContent>
               </Card>
             </div>
@@ -262,9 +275,9 @@ export default function ManagerDashboardPage() {
         <div className="space-y-6">
           {/* Charts */}
           <div className="grid gap-4 md:grid-cols-2">
-            <Card>
+            <Card className="border border-border/80 bg-card/60 backdrop-blur-xs">
               <CardHeader>
-                <CardTitle>Appointments by Branch</CardTitle>
+                <CardTitle className="text-base font-semibold">Appointments by Branch</CardTitle>
               </CardHeader>
               <CardContent>
                 {analytics.appointmentsByBranch && analytics.appointmentsByBranch.length > 0 && analytics.appointmentsByBranch.some((b: any) => b.count > 0) ? (
@@ -277,14 +290,22 @@ export default function ManagerDashboardPage() {
                         labelLine={false}
                         label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                         outerRadius={80}
-                        fill="#8884d8"
+                        fill="#0d7377"
                         dataKey="count"
                       >
                         {analytics.appointmentsByBranch.map((entry: any, index: number) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'var(--card)',
+                          borderColor: 'var(--border)',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                        }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
@@ -295,20 +316,36 @@ export default function ManagerDashboardPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border border-border/80 bg-card/60 backdrop-blur-xs">
               <CardHeader>
-                <CardTitle>Appointments Trend</CardTitle>
+                <CardTitle className="text-base font-semibold">Appointments Trend</CardTitle>
               </CardHeader>
               <CardContent>
                 {analytics.appointmentsByDate && analytics.appointmentsByDate.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={analytics.appointmentsByDate}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="count" stroke="#0d7377" strokeWidth={2} name="Appointments" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.4} />
+                      <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                      <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'var(--card)',
+                          borderColor: 'var(--border)',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                        }}
+                        labelStyle={{ color: 'var(--muted-foreground)', fontSize: 11 }}
+                        itemStyle={{ color: 'var(--foreground)' }}
+                      />
+                      <Legend verticalAlign="top" height={36} iconType="circle" />
+                      <Line 
+                        type="monotone" 
+                        dataKey="count" 
+                        stroke="#0d7377" 
+                        strokeWidth={3} 
+                        activeDot={{ r: 6 }} 
+                        name="Appointments" 
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,8 @@ import {
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Appointment {
   id: string;
@@ -76,40 +79,44 @@ export default function BranchAppointmentsPage() {
   };
 
   const sendReminder = async (appointment: Appointment) => {
-    if (!confirm(`Send reminder to ${appointment.full_name} at ${appointment.phone}?`)) {
-      return;
-    }
+    toast(`Send SMS to ${appointment.full_name}?`, {
+      description: `Phone: ${appointment.phone}`,
+      action: {
+        label: "Send",
+        onClick: async () => {
+          try {
+            const response = await fetch("/api/appointments/reminder", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                appointmentId: appointment.id,
+                phone: appointment.phone,
+                name: appointment.full_name,
+                date: appointment.preferred_date,
+                time: appointment.preferred_time,
+                branch: branchNames[appointment.branch],
+              }),
+            });
 
-    try {
-      const response = await fetch("/api/appointments/reminder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          appointmentId: appointment.id,
-          phone: appointment.phone,
-          name: appointment.full_name,
-          date: appointment.preferred_date,
-          time: appointment.preferred_time,
-          branch: branchNames[appointment.branch],
-        }),
-      });
+            const data = await response.json();
 
-      const data = await response.json();
-
-      if (data.success && data.smsStatus === "sent") {
-        alert(`✅ SMS Reminder sent successfully to ${appointment.full_name} at ${appointment.phone}`);
-        fetchAppointments();
-      } else if (data.smsStatus === "logged") {
-        alert(`⚠️ Reminder logged (Twilio not configured)\n\nTo: ${data.phone}\nMessage: ${data.reminderMessage}\n\nCheck server console for details.`);
-        fetchAppointments();
-      } else {
-        alert(`⚠️ ${data.message || "Reminder processed. Check server console for details."}`);
-        fetchAppointments();
-      }
-    } catch (error) {
-      console.error("Error sending reminder:", error);
-      alert("❌ Error sending reminder. Please check the console for details.");
-    }
+            if (data.success && data.smsStatus === "sent") {
+              toast.success(`SMS Reminder sent to ${appointment.full_name}`);
+              fetchAppointments();
+            } else if (data.smsStatus === "logged") {
+              toast.warning("Reminder logged. Twilio not configured.");
+              fetchAppointments();
+            } else {
+              toast.info(data.message || "Reminder processed.");
+              fetchAppointments();
+            }
+          } catch (error) {
+            console.error("Error sending reminder:", error);
+            toast.error("Error sending reminder. Check console.");
+          }
+        },
+      },
+    });
   };
 
   const filteredAppointments = appointments.filter((apt) => {
@@ -129,8 +136,66 @@ export default function BranchAppointmentsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-6 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48 bg-muted/60" />
+            <Skeleton className="h-4 w-72 bg-muted/40" />
+          </div>
+          <Skeleton className="h-10 w-44 bg-muted/60" />
+        </div>
+
+        {/* Filter Card Skeleton */}
+        <Card className="border-border/60 bg-card/40 backdrop-blur-xs">
+          <CardContent className="p-6 grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16 bg-muted/50" />
+              <Skeleton className="h-10 w-full bg-muted/40" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-16 bg-muted/50" />
+              <Skeleton className="h-10 w-full bg-muted/40" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Stats Row Skeleton */}
+        <div className="grid gap-4 md:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-border/60 bg-card/40">
+              <CardContent className="p-4 space-y-2">
+                <Skeleton className="h-7 w-12 bg-muted/65" />
+                <Skeleton className="h-4 w-24 bg-muted/40" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Appointment Cards Skeletons */}
+        <div className="space-y-4">
+          {[1, 2].map((i) => (
+            <Card key={i} className="border-border/60 bg-card/40">
+              <CardHeader className="p-6 space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-6 w-36 bg-muted/60" />
+                      <Skeleton className="h-5 w-24 bg-muted/45" />
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                      <Skeleton className="h-4 w-28 bg-muted/40" />
+                      <Skeleton className="h-4 w-36 bg-muted/40" />
+                      <Skeleton className="h-4 w-24 bg-muted/40" />
+                      <Skeleton className="h-4 w-40 bg-muted/40" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-9 w-32 bg-muted/50" />
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
       </div>
     );
   }

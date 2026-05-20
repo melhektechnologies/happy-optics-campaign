@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
@@ -14,7 +14,15 @@ export interface AuthUser {
 export async function getAuthUser(): Promise<AuthUser | null> {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
+    let token = cookieStore.get("auth_token")?.value;
+
+    if (!token) {
+      const headersList = await headers();
+      const authHeader = headersList.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) {
       return null;
@@ -22,7 +30,7 @@ export async function getAuthUser(): Promise<AuthUser | null> {
 
     const decoded = jwt.verify(token, JWT_SECRET) as AuthUser;
     return decoded;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
