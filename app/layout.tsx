@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className="antialiased selection:bg-primary/30 selection:text-white"
+        className="antialiased selection:bg-primary/30 selection:text-white font-inter"
       >
         <ThemeProvider>
           {/* Cinematic Atmospheric Effects */}
