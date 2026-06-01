@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Dynamically load heavy charting libraries to optimize initial render speed
 const LineChart = dynamic(() => import("recharts").then((mod) => mod.LineChart), { ssr: false });
@@ -185,7 +186,11 @@ export default function ManagerDashboardPage() {
                   <Users className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold tracking-tight text-foreground">{stats.totalPatients}</div>
+                  {loading ? (
+                    <Skeleton className="h-8 w-16 bg-muted/65 my-0.5" />
+                  ) : (
+                    <div className="text-3xl font-bold tracking-tight text-foreground">{stats.totalPatients}</div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">All registered patients</p>
                 </CardContent>
               </Card>
@@ -198,7 +203,11 @@ export default function ManagerDashboardPage() {
                   <Calendar className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold tracking-tight text-foreground">{stats.todayAppointments}</div>
+                  {loading ? (
+                    <Skeleton className="h-8 w-16 bg-muted/65 my-0.5" />
+                  ) : (
+                    <div className="text-3xl font-bold tracking-tight text-foreground">{stats.todayAppointments}</div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">Scheduled for today</p>
                 </CardContent>
               </Card>
@@ -211,7 +220,11 @@ export default function ManagerDashboardPage() {
                   <DollarSign className="h-4 w-4 text-primary" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold tracking-tight text-foreground">${stats.monthlySales.toLocaleString()}</div>
+                  {loading ? (
+                    <Skeleton className="h-8 w-24 bg-muted/65 my-0.5" />
+                  ) : (
+                    <div className="text-3xl font-bold tracking-tight text-foreground">${stats.monthlySales.toLocaleString()}</div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">This month's revenue</p>
                 </CardContent>
               </Card>
@@ -219,7 +232,7 @@ export default function ManagerDashboardPage() {
           </div>
 
           {/* Manager-only Analytics Cards */}
-          {analytics && (
+          {(analytics || loading) && (
             <div className="grid gap-4 md:grid-cols-4">
               <Card className="premium-card">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -227,7 +240,11 @@ export default function ManagerDashboardPage() {
                   <Eye className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold tracking-tight">{analytics.totalVisits.toLocaleString()}</div>
+                  {loading ? (
+                    <Skeleton className="h-8 w-20 bg-muted/65 my-0.5" />
+                  ) : (
+                    <div className="text-2xl font-bold tracking-tight">{analytics?.totalVisits?.toLocaleString() || 0}</div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">Total visits</p>
                 </CardContent>
               </Card>
@@ -237,7 +254,11 @@ export default function ManagerDashboardPage() {
                   <Users className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold tracking-tight">{analytics.uniqueVisitors.toLocaleString()}</div>
+                  {loading ? (
+                    <Skeleton className="h-8 w-20 bg-muted/65 my-0.5" />
+                  ) : (
+                    <div className="text-2xl font-bold tracking-tight">{analytics?.uniqueVisitors?.toLocaleString() || 0}</div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">Unique users</p>
                 </CardContent>
               </Card>
@@ -247,7 +268,11 @@ export default function ManagerDashboardPage() {
                   <BarChart3 className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold tracking-tight">{analytics.pageViews.toLocaleString()}</div>
+                  {loading ? (
+                    <Skeleton className="h-8 w-20 bg-muted/65 my-0.5" />
+                  ) : (
+                    <div className="text-2xl font-bold tracking-tight">{analytics?.pageViews?.toLocaleString() || 0}</div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">Total page views</p>
                 </CardContent>
               </Card>
@@ -257,11 +282,15 @@ export default function ManagerDashboardPage() {
                   <TrendingUp className="h-4 w-4 text-primary/80" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold tracking-tight">
-                    {typeof analytics.conversionRate === 'number' 
-                      ? analytics.conversionRate.toFixed(1) 
-                      : parseFloat(analytics.conversionRate || '0').toFixed(1)}%
-                  </div>
+                  {loading ? (
+                    <Skeleton className="h-8 w-16 bg-muted/65 my-0.5" />
+                  ) : (
+                    <div className="text-2xl font-bold tracking-tight">
+                      {typeof analytics?.conversionRate === 'number' 
+                        ? analytics.conversionRate.toFixed(1) 
+                        : parseFloat(analytics?.conversionRate || '0').toFixed(1)}%
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground mt-1">Visit to appointment</p>
                 </CardContent>
               </Card>

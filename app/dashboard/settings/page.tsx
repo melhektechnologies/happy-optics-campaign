@@ -15,6 +15,7 @@ import {
   Eye,
   EyeOff
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -143,36 +144,58 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
+            <Bell className="h-5 w-5 text-primary" />
             <CardTitle>Notifications</CardTitle>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="notifications">Email Notifications</Label>
-              <p className="text-sm text-muted-foreground">Receive email notifications for new appointments</p>
+          <div className="flex items-center justify-between py-1">
+            <div className="space-y-0.5">
+              <Label htmlFor="notifications" className="text-sm font-medium cursor-pointer">Email Notifications</Label>
+              <p className="text-xs text-muted-foreground">Receive email notifications for new appointments</p>
             </div>
-            <input
-              type="checkbox"
+            <button
+              type="button"
               id="notifications"
-              checked={settings.notifications}
-              onChange={(e) => setSettings({ ...settings, notifications: e.target.checked })}
-              className="h-4 w-4"
-            />
+              role="switch"
+              aria-checked={settings.notifications}
+              onClick={() => setSettings({ ...settings, notifications: !settings.notifications })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-250 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
+                settings.notifications ? "bg-primary" : "bg-muted"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-md ring-0 transition-transform duration-250 ease-in-out",
+                  settings.notifications ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
           </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label htmlFor="reminders">Appointment Reminders</Label>
-              <p className="text-sm text-muted-foreground">Send automatic reminders to patients</p>
+          <div className="flex items-center justify-between py-1 border-t border-border/40 pt-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="reminders" className="text-sm font-medium cursor-pointer">Appointment Reminders</Label>
+              <p className="text-xs text-muted-foreground">Send automatic reminders to patients</p>
             </div>
-            <input
-              type="checkbox"
+            <button
+              type="button"
               id="reminders"
-              checked={settings.reminders}
-              onChange={(e) => setSettings({ ...settings, reminders: e.target.checked })}
-              className="h-4 w-4"
-            />
+              role="switch"
+              aria-checked={settings.reminders}
+              onClick={() => setSettings({ ...settings, reminders: !settings.reminders })}
+              className={cn(
+                "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-250 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2",
+                settings.reminders ? "bg-primary" : "bg-muted"
+              )}
+            >
+              <span
+                className={cn(
+                  "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-md ring-0 transition-transform duration-250 ease-in-out",
+                  settings.reminders ? "translate-x-5" : "translate-x-0"
+                )}
+              />
+            </button>
           </div>
         </CardContent>
       </Card>

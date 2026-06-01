@@ -179,10 +179,11 @@ export default function ManagerDashboardLayout({
                           key={item.href}
                           href={item.href}
                           onClick={() => setSidebarOpen(false)}
+                          title={isCollapsed ? item.label : undefined}
                           className={cn(
                             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 relative group",
                             isActive
-                              ? "bg-primary/10 text-primary"
+                              ? "bg-gradient-to-r from-primary/12 to-primary/2 text-primary shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)]"
                               : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           )}
                         >
@@ -192,9 +193,9 @@ export default function ManagerDashboardLayout({
                               {item.label}
                             </span>
                           )}
-                          {/* Active Marker */}
+                          {/* Active glowing indicator */}
                           {isActive && (
-                            <span className="absolute left-0 top-1/4 bottom-1/4 w-1 rounded-r bg-primary" />
+                            <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-r bg-primary shadow-[0_0_8px_var(--primary)]" />
                           )}
                         </Link>
                       );

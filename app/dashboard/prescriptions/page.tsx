@@ -14,6 +14,7 @@ import {
   User,
   Calendar
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Prescription {
   id: string;
@@ -94,7 +95,46 @@ export default function PrescriptionsPage() {
 
       {/* Prescriptions List */}
       <div className="space-y-4">
-        {filteredPrescriptions.length === 0 ? (
+        {loading ? (
+          Array.from({ length: 2 }).map((_, i) => (
+            <Card key={i} className="border-border/60 bg-card/40 backdrop-blur-xs">
+              <CardHeader className="p-6 pb-2">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-56 bg-muted/65" />
+                    <Skeleton className="h-4 w-28 bg-muted/40" />
+                  </div>
+                  <Skeleton className="h-5 w-16 bg-muted/45" />
+                </div>
+              </CardHeader>
+              <CardContent className="p-6 pt-0 space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24 bg-muted/50" />
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-32 bg-muted/40" />
+                      <Skeleton className="h-4 w-28 bg-muted/40" />
+                      <Skeleton className="h-4 w-36 bg-muted/40" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-24 bg-muted/50" />
+                    <div className="space-y-1.5">
+                      <Skeleton className="h-4 w-32 bg-muted/40" />
+                      <Skeleton className="h-4 w-28 bg-muted/40" />
+                      <Skeleton className="h-4 w-36 bg-muted/40" />
+                    </div>
+                  </div>
+                </div>
+                <Skeleton className="h-4 w-full bg-muted/40" />
+                <div className="flex gap-2">
+                  <Skeleton className="h-9 w-28 bg-muted/50" />
+                  <Skeleton className="h-9 w-28 bg-muted/50" />
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredPrescriptions.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <p className="text-muted-foreground">No prescriptions found</p>

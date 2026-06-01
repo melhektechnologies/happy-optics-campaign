@@ -15,6 +15,7 @@ import {
   Mail,
   Calendar
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Patient {
   id: string;
@@ -96,7 +97,32 @@ export default function PatientsPage() {
 
       {/* Patients List */}
       <div className="space-y-4">
-        {filteredPatients.length === 0 ? (
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <Card key={i} className="border-border/60 bg-card/40 backdrop-blur-xs">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-6 w-48 bg-muted/65" />
+                      <Skeleton className="h-5 w-24 bg-muted/45" />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      <Skeleton className="h-4 w-28 bg-muted/40" />
+                      <Skeleton className="h-4 w-36 bg-muted/40" />
+                      <Skeleton className="h-4 w-24 bg-muted/40" />
+                      <Skeleton className="h-4 w-20 bg-muted/40" />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 ml-4">
+                    <Skeleton className="h-9 w-16 bg-muted/50" />
+                    <Skeleton className="h-9 w-16 bg-muted/50" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : filteredPatients.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <p className="text-muted-foreground">No patients found</p>
