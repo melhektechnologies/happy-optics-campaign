@@ -83,7 +83,7 @@ const CHART_COLORS = ['#0b6e72', '#12b8a6', '#0d9488', '#6366f1'];
 // Animated counter hook
 function useCountUp(target: number, duration = 1000, enabled = true) {
   const [value, setValue] = useState(0);
-  const frameRef = useRef<number>();
+  const frameRef = useRef<number>(null);
   
   useEffect(() => {
     if (!enabled || target === 0) {
@@ -573,7 +573,7 @@ export default function DashboardPage() {
                         paddingAngle={4}
                         cornerRadius={6}
                         dataKey="count"
-                        label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, percent = 0 }) => `${name} (${(percent * 100).toFixed(0)}%)`}
                       >
                         {analytics.appointmentsByBranch.map((_, index) => (
                           <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />

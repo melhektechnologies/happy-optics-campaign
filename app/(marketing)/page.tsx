@@ -1,25 +1,163 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PremiumButton } from "@/components/premium-button";
-import { Container } from "@/components/container";
-import { Section } from "@/components/section";
-import { ServiceCard } from "@/components/service-card";
-import { TestimonialsCarousel } from "@/components/testimonials-carousel";
-import { ScrollAnimation } from "@/components/scroll-animation";
-import { ParallaxSection } from "@/components/parallax-section";
-import { TrustBadges } from "@/components/trust-badges";
-import { LiveChatWidget } from "@/components/live-chat-widget";
-import { PartnersSection } from "@/components/partners-section";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Eye, Glasses, Heart, Sparkles, CheckCircle2, ArrowRight, Star } from "lucide-react";
-import { motion } from "framer-motion";
+import {
+  Eye,
+  Glasses,
+  Heart,
+  Sparkles,
+  CheckCircle2,
+  ArrowRight,
+  Star,
+  MapPin,
+  Phone,
+  Clock,
+  Shield,
+  Award,
+  Users,
+  Calendar,
+  ChevronRight,
+  Zap,
+  Activity,
+  TrendingUp,
+} from "lucide-react";
+
+// ─── Scroll Animation Hook ───────────────────────────────────────────────────
+function useInView(threshold = 0.12) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) setInView(true); },
+      { threshold }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, inView };
+}
+
+// ─── Fade-in wrapper ──────────────────────────────────────────────────────────
+function Reveal({
+  children,
+  delay = 0,
+  direction = "up",
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  direction?: "up" | "left" | "right" | "none";
+  className?: string;
+}) {
+  const { ref, inView } = useInView();
+  const transforms: Record<string, string> = {
+    up: "translateY(32px)",
+    left: "translateX(-32px)",
+    right: "translateX(32px)",
+    none: "none",
+  };
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: inView ? 1 : 0,
+        transform: inView ? "none" : transforms[direction],
+        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}ms`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Animated Counter ────────────────────────────────────────────────────────
+function Counter({ target, suffix = "", prefix = "" }: { target: number; suffix?: string; prefix?: string }) {
+  const [val, setVal] = useState(0);
+  const { ref, inView } = useInView(0.5);
+  useEffect(() => {
+    if (!inView) return;
+    let start = 0;
+    const dur = 1400;
+    const startTime = Date.now();
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / dur, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      start = Math.round(ease * target);
+      setVal(start);
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [inView, target]);
+  return (
+    <span ref={ref} className="tabular-nums">
+      {prefix}{val.toLocaleString()}{suffix}
+    </span>
+  );
+}
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+const stats = [
+  { label: "Patients Served", value: 28000, suffix: "+", icon: Users },
+  { label: "Years of Excellence", value: 20, suffix: "+", icon: Award },
+  { label: "Branches Citywide", value: 4, suffix: "", icon: MapPin },
+  { label: "Satisfaction Rate", value: 98, suffix: "%", icon: TrendingUp },
+];
+
+const services = [
+  {
+    icon: Eye,
+    title: "Comprehensive Eye Exams",
+    desc: "Advanced diagnostic equipment delivering thorough assessments of your complete ocular health.",
+    badge: "Most Popular",
+  },
+  {
+    icon: Glasses,
+    title: "Premium Eyewear",
+    desc: "Curated international frames and precision lenses — from designer to sport and progressive.",
+    badge: "500+ Styles",
+  },
+  {
+    icon: Heart,
+    title: "Contact Lens Fitting",
+    desc: "Expert consultation and fitting for daily, monthly, and specialty contact lenses.",
+    badge: "",
+  },
+  {
+    icon: Shield,
+    title: "Blue Light Protection",
+    desc: "Specialized digital eye strain lenses engineered for screen-heavy modern lifestyles.",
+    badge: "New",
+  },
+  {
+    icon: Sparkles,
+    title: "Progressive Lenses",
+    desc: "Seamless multifocal solutions for crystal-clear vision at every distance.",
+    badge: "",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Children's Vision",
+    desc: "Gentle pediatric eye care with fun frame options — building lifelong visual health.",
+    badge: "",
+  },
+];
+
+const branches = [
+  { name: "Head Office", area: "Yeha City Center (Stadium)", phone: "+251 115 584 293", hours: "Mon–Sat: 9AM–6PM" },
+  { name: "Bole Branch", area: "Bole, Addis Ababa", phone: "+251 914 394 69", hours: "Mon–Sat: 9AM–6PM" },
+  { name: "Kera Branch", area: "Kera, Addis Ababa", phone: "+251 912 509 666", hours: "Mon–Sat: 9AM–6PM" },
+  { name: "Betezatha Branch", area: "Betezatha, Addis Ababa", phone: "+251 115 584 293", hours: "Mon–Sat: 9AM–6PM" },
+];
 
 const testimonials = [
   {
-    quote: "The staff at Happy Optics are incredibly professional and caring. My new glasses are perfect, and the service was exceptional.",
+    quote: "The staff at Happy Optics are incredibly professional and caring. My new glasses are perfect — the experience was exceptional.",
     author: "Alem T.",
     role: "Patient",
     rating: 5,
@@ -31,510 +169,590 @@ const testimonials = [
     rating: 5,
   },
   {
-    quote: "As a Unity student, I took advantage of the free eye check. The examination was thorough, and I'm very satisfied with the service.",
+    quote: "As a Unity student, the free eye check was a game changer. The examination was thorough and I'm very satisfied.",
     author: "Sara M.",
     role: "Unity University Student",
     rating: 5,
   },
+  {
+    quote: "World-class service right here in Addis! The progressive lenses have completely changed how I work.",
+    author: "Dawit H.",
+    role: "Software Engineer",
+    rating: 5,
+  },
 ];
 
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function HomePage() {
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [heroLoaded, setHeroLoaded] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setHeroLoaded(true), 80);
+    const interval = setInterval(() => setActiveTestimonial((p) => (p + 1) % testimonials.length), 5000);
+    return () => { clearTimeout(t); clearInterval(interval); };
+  }, []);
+
   return (
-    <>
-      <LiveChatWidget />
-      
-      {/* Hero Section with Premium Animations */}
-      <Section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 min-h-[90vh] flex items-center">
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-        }}></div>
-        
-        {/* Animated gradient orbs */}
-        <motion.div
-          className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, 80, 0],
-            y: [0, -80, 0],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 15,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute bottom-0 left-0 w-96 h-96 bg-accent/20 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.4, 1],
-            x: [0, -80, 0],
-            y: [0, 80, 0],
-            opacity: [0.3, 0.5, 0.3],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute top-1/2 left-1/2 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
-          animate={{
-            scale: [1, 1.5, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 30,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
+    <div className="overflow-x-hidden">
 
-        <Container>
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center py-12 lg:py-20">
-            <ScrollAnimation direction="right" delay={0.2}>
-              <div className="space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <Badge variant="outline" className="w-fit mb-4 group cursor-pointer">
-                    <motion.span
-                      animate={{ rotate: [0, 360] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                      className="inline-block mr-2"
-                    >
-                      <Sparkles className="h-3 w-3" />
-                    </motion.span>
-                    Established 2003 E.C.
-                  </Badge>
-                </motion.div>
-                <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl"
-                >
-                  Brightens your vision{" "}
-                  <motion.span 
-                    className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent inline-block"
-                    animate={{
-                      backgroundPosition: ["0%", "100%", "0%"],
-                    }}
-                    transition={{
-                      duration: 5,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                    style={{
-                      backgroundSize: "200% 200%",
-                    }}
-                  >
-                    one smile at a time
-                  </motion.span>
-                </motion.h1>
-                <motion.p
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="text-lg text-muted-foreground max-w-2xl"
-                >
-                  Experience exceptional eye care services and premium eyewear solutions at Happy Optics Optometry Clinic. 
-                  With four branches across Addis Ababa, we're committed to delivering personalized care and the highest quality.
-                </motion.p>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="flex flex-col sm:flex-row gap-4"
-                >
-                  <PremiumButton asChild size="lg" glowEffect>
-                    <Link href="/book">Book Appointment</Link>
-                  </PremiumButton>
-                  <PremiumButton asChild variant="outline" size="lg" showArrow={false}>
-                    <Link href="/about">Learn More</Link>
-                  </PremiumButton>
-                </motion.div>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* HERO — Cinematic Full-Viewport                                    */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="relative min-h-[95vh] flex items-center overflow-hidden">
+        {/* Layered Background */}
+        <div className="absolute inset-0 bg-background" />
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--primary) 1px,transparent 1px),linear-gradient(90deg,var(--primary) 1px,transparent 1px)",
+            backgroundSize: "52px 52px",
+          }}
+        />
+        {/* Floating orbs */}
+        <div className="absolute top-[-10%] right-[-5%] h-[700px] w-[700px] rounded-full bg-primary/10 blur-[140px] pointer-events-none" style={{ animation: "float 8s ease-in-out infinite" }} />
+        <div className="absolute bottom-[-15%] left-[-5%] h-[600px] w-[600px] rounded-full bg-accent/8 blur-[120px] pointer-events-none" style={{ animation: "float 12s ease-in-out infinite reverse" }} />
+        <div className="absolute top-1/3 left-1/3 h-[300px] w-[300px] rounded-full bg-primary/5 blur-[80px] pointer-events-none" />
+
+        <div className="relative z-10 w-full max-w-[1380px] mx-auto px-6 lg:px-12 py-24 lg:py-0">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+            {/* Left — Copy */}
+            <div className="space-y-8">
+              {/* Pre-title badge */}
+              <div
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transform: heroLoaded ? "none" : "translateY(16px)",
+                  transition: "all 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s",
+                }}
+              >
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/15 text-primary text-[11px] font-black uppercase tracking-[0.18em]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse inline-block" />
+                  Established 2003 E.C. · Addis Ababa
+                </span>
               </div>
-            </ScrollAnimation>
 
-            <ParallaxSection speed={0.3}>
-              <ScrollAnimation direction="left" delay={0.4}>
-                <div className="relative">
-                  <motion.div
-                    className="relative aspect-[4/3] overflow-hidden rounded-2xl shadow-2xl group"
-                    whileHover={{ scale: 1.05, rotate: 1 }}
-                    transition={{ duration: 0.4, type: "spring", stiffness: 200 }}
-                  >
-                    <motion.div
-                      className="absolute inset-0"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <Image
-                        src="/brand/clinic.jpeg"
-                        alt="Happy Optics Clinic Interior"
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        priority
-                      />
-                    </motion.div>
-                    <motion.div 
-                      className="absolute inset-0 bg-gradient-to-t from-black/30 via-black/10 to-transparent"
-                      initial={{ opacity: 0.5 }}
-                      whileHover={{ opacity: 0.8 }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <motion.div
-                      className="absolute inset-0 border-2 border-primary/20 rounded-2xl"
-                      whileHover={{ borderColor: "rgba(13, 115, 119, 0.5)" }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </motion.div>
-                  <motion.div
-                    className="absolute -bottom-6 -right-6 hidden h-32 w-32 rounded-full bg-primary/20 blur-3xl lg:block"
-                    animate={{
-                      scale: [1, 1.2, 1],
-                      opacity: [0.3, 0.5, 0.3],
-                    }}
-                    transition={{
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                  />
+              {/* Headline */}
+              <div
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transform: heroLoaded ? "none" : "translateY(24px)",
+                  transition: "all 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s",
+                }}
+              >
+                <h1 className="text-5xl lg:text-[72px] font-black tracking-[-0.04em] leading-[1.0] text-foreground">
+                  Brightens your<br />
+                  vision{" "}
+                  <span className="gradient-text">one smile</span>
+                  <br />
+                  at a time.
+                </h1>
+              </div>
+
+              {/* Sub */}
+              <div
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transform: heroLoaded ? "none" : "translateY(20px)",
+                  transition: "all 0.7s cubic-bezier(0.16,1,0.3,1) 0.35s",
+                }}
+              >
+                <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+                  Experience exceptional eye care and premium eyewear at Happy Optics Optometry Clinic — four branches across Addis Ababa, delivering precision and personalized care since 2003 E.C.
+                </p>
+              </div>
+
+              {/* CTA Row */}
+              <div
+                className="flex flex-col sm:flex-row gap-4"
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transform: heroLoaded ? "none" : "translateY(20px)",
+                  transition: "all 0.7s cubic-bezier(0.16,1,0.3,1) 0.5s",
+                }}
+              >
+                <Link
+                  href="/book"
+                  className="group inline-flex items-center justify-center gap-2.5 h-14 px-8 rounded-2xl bg-primary text-white font-bold text-sm tracking-wide shadow-lg glow-primary hover:bg-primary-hover transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  <Calendar className="h-4 w-4" />
+                  Book Appointment
+                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/services"
+                  className="group inline-flex items-center justify-center gap-2.5 h-14 px-8 rounded-2xl border border-border bg-card/80 text-foreground font-bold text-sm tracking-wide hover:border-primary/30 hover:bg-primary-light/30 transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  Explore Services
+                  <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform text-muted-foreground" />
+                </Link>
+              </div>
+
+              {/* Trust row */}
+              <div
+                className="flex items-center gap-6 pt-2"
+                style={{
+                  opacity: heroLoaded ? 1 : 0,
+                  transition: "opacity 0.7s cubic-bezier(0.16,1,0.3,1) 0.65s",
+                }}
+              >
+                <div className="flex -space-x-2.5">
+                  {["A","M","S","D"].map((i) => (
+                    <div key={i} className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent border-2 border-background flex items-center justify-center text-white text-[10px] font-black">
+                      {i}
+                    </div>
+                  ))}
                 </div>
-              </ScrollAnimation>
-            </ParallaxSection>
+                <div>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    {[1,2,3,4,5].map(s => <Star key={s} className="h-3 w-3 fill-amber-400 text-amber-400" />)}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground font-semibold">Trusted by 28,000+ patients</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right — Hero Visual */}
+            <div
+              className="relative hidden lg:block"
+              style={{
+                opacity: heroLoaded ? 1 : 0,
+                transform: heroLoaded ? "none" : "translateX(32px)",
+                transition: "all 0.9s cubic-bezier(0.16,1,0.3,1) 0.3s",
+              }}
+            >
+              <div className="relative h-[560px]">
+                {/* Main image card */}
+                <div className="absolute inset-0 rounded-[32px] overflow-hidden border border-border/60 shadow-2xl" style={{ boxShadow: "0 40px 100px -20px rgba(11,110,114,0.25)" }}>
+                  <Image
+                    src="/brand/clinic.jpeg"
+                    alt="Happy Optics Clinic Interior"
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                </div>
+
+                {/* Floating stat card #1 */}
+                <div className="absolute -left-8 top-10 glass-panel p-4 shadow-xl border border-border/40 rounded-2xl" style={{ animation: "float 6s ease-in-out infinite" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
+                      <Activity className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Today&apos;s Appointments</p>
+                      <p className="text-xl font-black gradient-text">24 Patients</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating stat card #2 */}
+                <div className="absolute -right-8 bottom-16 glass-panel p-4 shadow-xl border border-border/40 rounded-2xl" style={{ animation: "float 8s ease-in-out infinite 2s" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-xl bg-success-light/60 text-success flex items-center justify-center">
+                      <Star className="h-5 w-5 fill-current" />
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Patient Rating</p>
+                      <p className="text-xl font-black text-foreground">4.98 / 5.0</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Badge bottom-left */}
+                <div className="absolute left-6 bottom-6 flex items-center gap-2 bg-black/70 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/10">
+                  <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                  <span className="text-white text-[10px] font-bold uppercase tracking-widest">All 4 Branches Open</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </Container>
-      </Section>
+        </div>
+      </section>
 
-      {/* Trust Badges */}
-      <Section className="bg-muted/30">
-        <Container>
-          <ScrollAnimation>
-            <TrustBadges />
-          </ScrollAnimation>
-        </Container>
-      </Section>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* STATS BAR                                                         */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="border-y border-border/40 bg-card/60 backdrop-blur-sm">
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12">
+          <div className="grid grid-cols-2 lg:grid-cols-4">
+            {stats.map((s, i) => (
+              <Reveal key={i} delay={i * 80} direction="up">
+                <div className={`flex items-center gap-4 py-8 px-6 ${i < stats.length - 1 ? "border-b lg:border-b-0 lg:border-r border-border/40" : ""} ${i % 2 === 0 ? "border-r lg:border-r-0 border-border/40 lg:border-r border-border/40" : ""}`}>
+                  <div className="h-11 w-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <s.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-3xl font-black tracking-tighter gradient-text">
+                      <Counter target={s.value} suffix={s.suffix} />
+                    </p>
+                    <p className="text-[11px] text-muted-foreground font-semibold mt-0.5">{s.label}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* SERVICES GRID                                                     */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-28 relative overflow-hidden">
+        <div className="absolute top-0 right-0 h-[600px] w-[600px] rounded-full bg-accent/5 blur-[120px] pointer-events-none" />
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12">
+          <Reveal direction="up">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-16">
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-3 block">What We Offer</span>
+                <h2 className="text-4xl lg:text-5xl font-black tracking-[-0.03em] text-foreground leading-[1.1]">
+                  World-class eye care,<br />
+                  <span className="gradient-text">right here in Addis.</span>
+                </h2>
+              </div>
+              <Link
+                href="/services"
+                className="group inline-flex items-center gap-2 text-sm font-bold text-primary hover:text-primary-hover transition-colors shrink-0"
+              >
+                View all services
+                <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </div>
+          </Reveal>
 
-      {/* Highlights with Premium Cards */}
-      <Section>
-        <Container>
-          <ScrollAnimation>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-                Why Choose Happy Optics?
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {services.map((s, i) => (
+              <Reveal key={i} delay={i * 70} direction="up">
+                <div className="premium-card gradient-border group p-7 h-full flex flex-col">
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <s.icon className="h-5.5 w-5.5" />
+                    </div>
+                    {s.badge && (
+                      <span className="badge-primary">{s.badge}</span>
+                    )}
+                  </div>
+                  <h3 className="text-base font-black text-foreground mb-2.5 tracking-tight">{s.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed flex-1">{s.desc}</p>
+                  <div className="mt-5 flex items-center gap-1.5 text-[11px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                    Learn more <ArrowRight className="h-3 w-3" />
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* UNITY CAMPAIGN — Full-bleed premium banner                        */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-8 px-6 lg:px-12">
+        <div className="max-w-[1380px] mx-auto">
+          <Reveal direction="up">
+            <div className="page-banner overflow-hidden rounded-[32px] relative">
+              <div className="absolute inset-0 neural-grid opacity-30" />
+              <div className="relative z-10 grid lg:grid-cols-2 gap-10 items-center p-8 lg:p-12">
+                <div className="space-y-5">
+                  <span className="badge-primary">
+                    <Zap className="h-2.5 w-2.5" />
+                    Unity University Campaign
+                  </span>
+                  <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-foreground">
+                    Free Eye Check<br />
+                    <span className="gradient-text">for Unity Students</span>
+                  </h2>
+                  <p className="text-muted-foreground leading-relaxed max-w-md">
+                    Unity University students receive a complimentary comprehensive eye examination. Book your appointment today — take the first step towards better vision, at zero cost.
+                  </p>
+                  <div className="flex gap-4">
+                    <Link
+                      href="/unity"
+                      className="group inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-white font-bold text-sm shadow-md glow-primary hover:bg-primary-hover transition-all"
+                    >
+                      Claim Free Exam
+                      <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                    <Link
+                      href="/book"
+                      className="inline-flex items-center gap-2 h-12 px-6 rounded-xl border border-border bg-card/60 text-foreground font-bold text-sm hover:border-primary/30 transition-all"
+                    >
+                      Book Appointment
+                    </Link>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center lg:justify-end">
+                  <div className="relative">
+                    <div className="h-36 w-36 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center" style={{ animation: "glow-pulse 3s ease-in-out infinite" }}>
+                      <CheckCircle2 className="h-16 w-16 text-primary" />
+                    </div>
+                    <div className="absolute -top-4 -right-4 h-16 w-16 rounded-full bg-accent/20 border border-accent/20 flex items-center justify-center">
+                      <Star className="h-7 w-7 text-accent fill-current" />
+                    </div>
+                    <div className="absolute -bottom-4 -left-4 glass-panel px-4 py-2 rounded-xl text-center">
+                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Offer Valid</p>
+                      <p className="text-sm font-black text-primary">2026</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* WHY CHOOSE US — 3-column feature matrix                           */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-28 bg-muted/30">
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12">
+          <Reveal direction="up">
+            <div className="text-center mb-16">
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-3 block">Our Difference</span>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-foreground mb-4">
+                Why 28,000 patients<br />choose Happy Optics
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                We combine precision, innovation, and personalized care to deliver exceptional optometric services.
+              <p className="text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                Precision, innovation, and personalized care — delivered consistently across all four branches.
               </p>
             </div>
-          </ScrollAnimation>
-          <div className="grid gap-8 md:grid-cols-3">
+          </Reveal>
+
+          <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                icon: Eye,
-                title: "Expert Optometrists",
-                description: "Our certified professionals provide comprehensive eye examinations with state-of-the-art equipment.",
+                icon: Award,
+                title: "20+ Years of Trust",
+                desc: "Established in 2003 E.C., we've built a legacy of excellence in Ethiopian optometry. Two decades of continuous, compassionate care.",
+                stat: "2003 E.C.",
+                statLabel: "Founded",
               },
               {
-                icon: Glasses,
-                title: "Premium Eyewear",
-                description: "Curated collection of high-quality frames and lenses from leading international brands.",
+                icon: Sparkles,
+                title: "State-of-the-Art Equipment",
+                desc: "We invest in the latest diagnostic technology — ensuring the most accurate prescriptions and comprehensive ocular health assessments.",
+                stat: "100%",
+                statLabel: "Digital Diagnostics",
               },
               {
                 icon: Heart,
-                title: "Personalized Care",
-                description: "Every patient receives individualized attention and tailored treatment plans.",
+                title: "Personalized Every Time",
+                desc: "No two patients are the same. Our optometrists craft individualized treatment plans, spending real time understanding your vision goals.",
+                stat: "4.98★",
+                statLabel: "Average Rating",
               },
-            ].map((highlight, index) => (
-              <ScrollAnimation key={index} delay={index * 0.15} direction="up">
-                <motion.div
-                  whileHover={{ y: -12, scale: 1.02 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <Card className="border-0 bg-card/50 backdrop-blur-sm h-full group hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 overflow-hidden relative">
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    />
-                    <CardContent className="p-8 relative z-10">
-                      <motion.div
-                        className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-all duration-300 relative overflow-hidden"
-                        whileHover={{ rotate: 360, scale: 1.1 }}
-                        transition={{ duration: 0.6, type: "spring" }}
-                      >
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        />
-                        <highlight.icon className="h-8 w-8 text-primary relative z-10" />
-                      </motion.div>
-                      <motion.h3 
-                        className="mb-3 text-xl font-semibold"
-                        whileHover={{ x: 4 }}
-                        transition={{ type: "spring", stiffness: 400 }}
-                      >
-                        {highlight.title}
-                      </motion.h3>
-                      <p className="text-sm text-muted-foreground leading-relaxed">{highlight.description}</p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </ScrollAnimation>
-            ))}
-          </div>
-        </Container>
-      </Section>
-
-      {/* Services Preview */}
-      <Section className="bg-muted/50">
-        <Container>
-          <ScrollAnimation>
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4">
-                Our Services
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Comprehensive eye care solutions tailored to your needs
-              </p>
-            </div>
-          </ScrollAnimation>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[
-              { title: "Eye Examinations", description: "Thorough eye health assessments using advanced diagnostic equipment." },
-              { title: "Eyeglass Fitting", description: "Expert fitting services for optimal comfort and vision correction." },
-              { title: "Contact Lenses", description: "Professional fitting and consultation for contact lens options." },
-              { title: "Blue Light Protection", description: "Specialized lenses to protect your eyes from digital screen strain." },
-              { title: "Progressive Lenses", description: "Advanced multifocal lenses for seamless vision at all distances." },
-              { title: "Frame Selection", description: "Wide range of premium frames to match your style and needs." },
-            ].map((service, index) => (
-              <ScrollAnimation key={index} delay={index * 0.1} direction="up">
-                <motion.div 
-                  whileHover={{ scale: 1.05, y: -8 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <ServiceCard
-                    title={service.title}
-                    description={service.description}
-                  />
-                </motion.div>
-              </ScrollAnimation>
-            ))}
-          </div>
-          <ScrollAnimation delay={0.3}>
-            <div className="mt-8 text-center">
-              <PremiumButton asChild variant="outline" size="lg">
-                <Link href="/services">View All Services</Link>
-              </PremiumButton>
-            </div>
-          </ScrollAnimation>
-        </Container>
-      </Section>
-
-      {/* Unity Campaign Banner with Premium Design */}
-      <Section>
-        <Container>
-          <ScrollAnimation>
-            <motion.div
-              whileHover={{ scale: 1.02, y: -4 }}
-              transition={{ duration: 0.3, type: "spring" }}
-            >
-              <Card className="border-primary/20 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 overflow-hidden relative group">
-                <motion.div 
-                  className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(13,115,119,0.1),transparent)]"
-                  animate={{
-                    backgroundPosition: ["0% 0%", "100% 100%"],
-                  }}
-                  transition={{
-                    duration: 10,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                  }}
-                />
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                />
-                <CardContent className="p-8 md:p-12 relative z-10">
-                  <div className="grid gap-8 md:grid-cols-2 items-center">
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                      >
-                        <Badge className="mb-4 bg-primary/20 text-primary border-primary/30">
-                          Unity University Campaign
-                        </Badge>
-                      </motion.div>
-                      <h2 className="text-3xl font-bold mb-4">Free Eye Check for Unity Students</h2>
-                      <p className="text-muted-foreground mb-6 leading-relaxed">
-                        Unity University students can now receive a complimentary eye examination. 
-                        Book your appointment today and take the first step towards better vision.
-                      </p>
-                      <PremiumButton asChild size="lg" glowEffect>
-                        <Link href="/unity">Learn More & Book</Link>
-                      </PremiumButton>
-                    </motion.div>
-                    <motion.div
-                      className="flex items-center justify-center"
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      animate={{
-                        scale: [1, 1.15, 1],
-                        rotate: [0, 10, -10, 0],
-                      }}
-                      transition={{
-                        duration: 5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 0.2,
-                      }}
-                    >
-                      <motion.div 
-                        className="flex h-32 w-32 items-center justify-center rounded-full bg-primary/20 relative overflow-hidden"
-                        whileHover={{ scale: 1.2, rotate: 360 }}
-                        transition={{ duration: 0.8, type: "spring" }}
-                      >
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-br from-primary/30 to-accent/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                        />
-                        <CheckCircle2 className="h-16 w-16 text-primary relative z-10" />
-                      </motion.div>
-                    </motion.div>
+            ].map((f, i) => (
+              <Reveal key={i} delay={i * 100} direction="up">
+                <div className="premium-card p-8 h-full group stat-card">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <f.icon className="h-5.5 w-5.5" />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black gradient-text">{f.stat}</p>
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">{f.statLabel}</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </ScrollAnimation>
-        </Container>
-      </Section>
+                  <h3 className="text-lg font-black text-foreground mb-3 tracking-tight">{f.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
-      {/* Premium Testimonials Carousel */}
-      <Section className="bg-muted/50">
-        <Container>
-          <ScrollAnimation>
-            <div className="text-center mb-12">
-              <motion.div 
-                className="flex items-center justify-center gap-2 mb-4"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-              >
-                <motion.div
-                  animate={{ rotate: [0, 360] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                >
-                  <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                </motion.div>
-                <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                  What Our Patients Say
-                </h2>
-                <motion.div
-                  animate={{ rotate: [360, 0] }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                >
-                  <Star className="h-6 w-6 text-yellow-500 fill-yellow-500" />
-                </motion.div>
-              </motion.div>
-              <motion.p 
-                className="text-muted-foreground"
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                Trusted by thousands of satisfied patients across Addis Ababa
-              </motion.p>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* TESTIMONIALS — Premium carousel                                   */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-28 relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 h-[500px] w-[500px] rounded-full bg-primary/6 blur-[120px] pointer-events-none" />
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12">
+          <Reveal direction="up">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="flex gap-1">
+                {[1,2,3,4,5].map(s => <Star key={s} className="h-5 w-5 fill-amber-400 text-amber-400" />)}
+              </div>
             </div>
-          </ScrollAnimation>
-          <ScrollAnimation delay={0.2}>
-            <TestimonialsCarousel testimonials={testimonials} />
-          </ScrollAnimation>
-        </Container>
-      </Section>
+            <div className="text-center mb-16">
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-3 block">Patient Stories</span>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-foreground">
+                Hear from our community
+              </h2>
+              <p className="text-muted-foreground mt-3">Trusted by thousands of satisfied patients across Addis Ababa</p>
+            </div>
+          </Reveal>
 
-          {/* Partners Section */}
-          <PartnersSection />
+          {/* Testimonial display */}
+          <Reveal direction="up" delay={100}>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+              {testimonials.map((t, i) => (
+                <div
+                  key={i}
+                  className="premium-card p-6 cursor-pointer transition-all duration-500"
+                  style={{
+                    borderColor: activeTestimonial === i ? "color-mix(in srgb, var(--primary) 30%, var(--border))" : undefined,
+                    boxShadow: activeTestimonial === i ? "var(--shadow-lg), 0 0 0 1px color-mix(in srgb, var(--primary) 10%, transparent)" : undefined,
+                    transform: activeTestimonial === i ? "translateY(-4px)" : undefined,
+                  }}
+                  onClick={() => setActiveTestimonial(i)}
+                >
+                  <div className="flex gap-1 mb-4">
+                    {Array.from({ length: t.rating }).map((_, s) => (
+                      <Star key={s} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-5 italic">&ldquo;{t.quote}&rdquo;</p>
+                  <div className="flex items-center gap-3 border-t border-border/40 pt-4">
+                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-[10px] font-black shrink-0">
+                      {t.author.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-foreground">{t.author}</p>
+                      <p className="text-[10px] text-muted-foreground">{t.role}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
 
-          {/* Premium CTA Section */}
-          <Section>
-        <Container>
-          <ScrollAnimation>
-            <motion.div
-              whileHover={{ scale: 1.02, y: -4 }}
-              transition={{ duration: 0.3, type: "spring" }}
-            >
-              <Card className="border-0 bg-gradient-to-r from-primary via-primary/90 to-accent text-primary-foreground overflow-hidden relative group">
-                <motion.div 
-                  className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]"
-                  animate={{
-                    backgroundPosition: ["0% 0%", "100% 100%"],
-                  }}
-                  transition={{
-                    duration: 8,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                  }}
-                />
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100"
-                  animate={{
-                    x: ["-100%", "100%"],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    repeatDelay: 3,
-                  }}
-                />
-                <CardContent className="p-12 text-center relative z-10">
-                  <motion.h2
-                    className="text-3xl font-bold mb-4"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
+          {/* Dot indicators */}
+          <div className="flex justify-center gap-2 mt-8">
+            {testimonials.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTestimonial(i)}
+                className="transition-all duration-300"
+                style={{
+                  height: "6px",
+                  width: activeTestimonial === i ? "24px" : "6px",
+                  borderRadius: "9999px",
+                  background: activeTestimonial === i ? "var(--primary)" : "var(--border)",
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* BRANCHES — Map-style location cards                               */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-28 bg-muted/30">
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12">
+          <Reveal direction="up">
+            <div className="text-center mb-16">
+              <span className="text-[11px] font-black uppercase tracking-[0.2em] text-primary mb-3 block">Our Network</span>
+              <h2 className="text-4xl lg:text-5xl font-black tracking-tighter text-foreground mb-4">
+                Four branches,<br />
+                <span className="gradient-text">one standard of excellence</span>
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {branches.map((b, i) => (
+              <Reveal key={i} delay={i * 80} direction="up">
+                <div className="premium-card gradient-border group p-6 h-full flex flex-col">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                      <MapPin className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-foreground leading-tight">{b.name}</h3>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <div className="h-1.5 w-1.5 rounded-full bg-success" />
+                        <span className="text-[9px] font-bold text-success uppercase tracking-wider">Open</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-start gap-2.5">
+                      <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                      <p className="text-xs text-muted-foreground">{b.area}</p>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <Phone className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                      <p className="text-xs text-muted-foreground font-mono">{b.phone}</p>
+                    </div>
+                    <div className="flex items-start gap-2.5">
+                      <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                      <p className="text-xs text-muted-foreground">{b.hours}</p>
+                    </div>
+                  </div>
+                  <Link
+                    href="/book"
+                    className="mt-5 flex items-center justify-between text-[11px] font-bold text-primary pt-4 border-t border-border/40 group-hover:gap-2 transition-all"
                   >
-                    Ready to Improve Your Vision?
-                  </motion.h2>
-                  <motion.p 
-                    className="text-lg mb-8 opacity-90"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 0.9, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
+                    Book at this branch
+                    <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* CTA — Final full-bleed conversion section                        */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-12 px-6 lg:px-12 pb-20">
+        <div className="max-w-[1380px] mx-auto">
+          <Reveal direction="up">
+            <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-br from-primary via-primary/90 to-accent text-white p-12 lg:p-16 text-center">
+              {/* Background texture */}
+              <div
+                className="absolute inset-0 opacity-10"
+                style={{
+                  backgroundImage: "linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)",
+                  backgroundSize: "40px 40px",
+                }}
+              />
+              <div className="absolute top-[-80px] right-[-80px] h-[300px] w-[300px] rounded-full bg-white/10 blur-[80px]" />
+              <div className="absolute bottom-[-60px] left-[-60px] h-[250px] w-[250px] rounded-full bg-white/10 blur-[80px]" />
+
+              <div className="relative z-10 space-y-6 max-w-2xl mx-auto">
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 border border-white/20 text-[11px] font-black uppercase tracking-widest">
+                  <Sparkles className="h-3 w-3" />
+                  Start Your Journey Today
+                </span>
+                <h2 className="text-4xl lg:text-5xl font-black tracking-tighter leading-[1.1]">
+                  Ready to see the world<br />more clearly?
+                </h2>
+                <p className="text-white/80 text-lg leading-relaxed">
+                  Book your comprehensive eye examination today. All four branches are open and ready to serve you with world-class care.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-2">
+                  <Link
+                    href="/book"
+                    className="group inline-flex items-center justify-center gap-2.5 h-14 px-8 rounded-2xl bg-white text-primary font-black text-sm shadow-xl hover:bg-gray-50 transition-all hover:-translate-y-0.5"
                   >
-                    Book your appointment today and experience the Happy Optics difference.
-                  </motion.p>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-                    whileHover={{ scale: 1.05 }}
+                    <Calendar className="h-4 w-4" />
+                    Book Appointment Now
+                    <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center justify-center gap-2.5 h-14 px-8 rounded-2xl bg-white/10 border border-white/20 text-white font-bold text-sm hover:bg-white/20 transition-all"
                   >
-                    <PremiumButton asChild size="lg" variant="secondary" glowEffect>
-                      <Link href="/book">Book Your Appointment Now</Link>
-                    </PremiumButton>
-                  </motion.div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </ScrollAnimation>
-        </Container>
-      </Section>
-    </>
+                    <Phone className="h-4 w-4" />
+                    Contact Us
+                  </Link>
+                </div>
+                <p className="text-white/50 text-[11px] font-semibold tracking-wide">
+                  No wait times · Same-day appointments available · All branches city-wide
+                </p>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+    </div>
   );
 }
-
