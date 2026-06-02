@@ -22,7 +22,18 @@ import {
   Zap,
   Activity,
   TrendingUp,
+  Box,
+  Scan,
+  Cpu,
+  Monitor
 } from "lucide-react";
+import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "framer-motion";
+
+const Eyewear3D = dynamic(() => import("@/components/eyewear-3d"), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-muted/20 animate-pulse rounded-3xl" />
+});
 
 // ─── Scroll Animation Hook ───────────────────────────────────────────────────
 function useInView(threshold = 0.12) {
@@ -201,179 +212,129 @@ export default function HomePage() {
 
   return (
     <div className="overflow-x-hidden">
-
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* HERO — Cinematic Full-Viewport                                    */}
+      {/* HERO — Traditional & Trust-Focused (Restored)                      */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="relative min-h-[95vh] flex items-center overflow-hidden">
-        {/* Layered Background */}
-        <div className="absolute inset-0 bg-background" />
-        <div
-          className="absolute inset-0 opacity-[0.035]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--primary) 1px,transparent 1px),linear-gradient(90deg,var(--primary) 1px,transparent 1px)",
-            backgroundSize: "52px 52px",
-          }}
-        />
-        {/* Floating orbs */}
-        <div className="absolute top-[-10%] right-[-5%] h-[700px] w-[700px] rounded-full bg-primary/10 blur-[140px] pointer-events-none" style={{ animation: "float 8s ease-in-out infinite" }} />
-        <div className="absolute bottom-[-15%] left-[-5%] h-[600px] w-[600px] rounded-full bg-accent/8 blur-[120px] pointer-events-none" style={{ animation: "float 12s ease-in-out infinite reverse" }} />
-        <div className="absolute top-1/3 left-1/3 h-[300px] w-[300px] rounded-full bg-primary/5 blur-[80px] pointer-events-none" />
-
-        <div className="relative z-10 w-full max-w-[1380px] mx-auto px-6 lg:px-12 py-24 lg:py-0">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-
-            {/* Left — Copy */}
-            <div className="space-y-8">
-              {/* Pre-title badge */}
-              <div
-                style={{
-                  opacity: heroLoaded ? 1 : 0,
-                  transform: heroLoaded ? "none" : "translateY(16px)",
-                  transition: "all 0.6s cubic-bezier(0.16,1,0.3,1) 0.1s",
-                }}
-              >
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/8 border border-primary/15 text-primary text-[11px] font-black uppercase tracking-[0.18em]">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse inline-block" />
-                  Established 2003 E.C. · Addis Ababa
-                </span>
+      <section className="relative min-h-[90vh] flex items-center pt-20 overflow-hidden bg-[#f8fafc]">
+        <div className="absolute inset-0 opacity-[0.4]" style={{ backgroundImage: "radial-gradient(#0b6e72 0.5px, transparent 0.5px)", backgroundSize: "24px 24px" }} />
+        
+        <div className="relative z-10 container mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-12 items-center">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="space-y-8"
+          >
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[10px] font-black uppercase tracking-widest">
+              • ESTABLISHED 2003 E.C. • ADDIS ABABA
+            </span>
+            <h1 className="text-5xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight">
+              Brightens your vision <span className="text-primary tracking-tighter">one smile</span> at a time.
+            </h1>
+            <p className="text-lg text-slate-600 max-w-lg leading-relaxed font-medium">
+              Experience exceptional eye care and premium eyewear at Happy Optics Optometry Clinic — four branches across Addis Ababa, delivering precision and personalized care since 2003 E.C.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link href="/book" className="h-14 px-8 rounded-2xl bg-primary text-white flex items-center justify-center font-bold text-sm hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all">
+                Book Appointment →
+              </Link>
+              <Link href="/services" className="h-14 px-8 rounded-2xl bg-white border border-slate-200 text-slate-900 flex items-center justify-center font-bold text-sm hover:border-primary/30 transition-all">
+                Explore Services &gt;
+              </Link>
+            </div>
+            
+            <div className="flex items-center gap-4 pt-4">
+              <div className="flex -space-x-2">
+                {[1,2,3,4].map(i => <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-slate-200" />)}
               </div>
-
-              {/* Headline */}
-              <div
-                style={{
-                  opacity: heroLoaded ? 1 : 0,
-                  transform: heroLoaded ? "none" : "translateY(24px)",
-                  transition: "all 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s",
-                }}
-              >
-                <h1 className="text-5xl lg:text-[72px] font-black tracking-[-0.04em] leading-[1.0] text-foreground">
-                  Brightens your<br />
-                  vision{" "}
-                  <span className="gradient-text">one smile</span>
-                  <br />
-                  at a time.
-                </h1>
-              </div>
-
-              {/* Sub */}
-              <div
-                style={{
-                  opacity: heroLoaded ? 1 : 0,
-                  transform: heroLoaded ? "none" : "translateY(20px)",
-                  transition: "all 0.7s cubic-bezier(0.16,1,0.3,1) 0.35s",
-                }}
-              >
-                <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
-                  Experience exceptional eye care and premium eyewear at Happy Optics Optometry Clinic — four branches across Addis Ababa, delivering precision and personalized care since 2003 E.C.
-                </p>
-              </div>
-
-              {/* CTA Row */}
-              <div
-                className="flex flex-col sm:flex-row gap-4"
-                style={{
-                  opacity: heroLoaded ? 1 : 0,
-                  transform: heroLoaded ? "none" : "translateY(20px)",
-                  transition: "all 0.7s cubic-bezier(0.16,1,0.3,1) 0.5s",
-                }}
-              >
-                <Link
-                  href="/book"
-                  className="group inline-flex items-center justify-center gap-2.5 h-14 px-8 rounded-2xl bg-primary text-white font-bold text-sm tracking-wide shadow-lg glow-primary hover:bg-primary-hover transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  <Calendar className="h-4 w-4" />
-                  Book Appointment
-                  <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                </Link>
-                <Link
-                  href="/services"
-                  className="group inline-flex items-center justify-center gap-2.5 h-14 px-8 rounded-2xl border border-border bg-card/80 text-foreground font-bold text-sm tracking-wide hover:border-primary/30 hover:bg-primary-light/30 transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  Explore Services
-                  <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform text-muted-foreground" />
-                </Link>
-              </div>
-
-              {/* Trust row */}
-              <div
-                className="flex items-center gap-6 pt-2"
-                style={{
-                  opacity: heroLoaded ? 1 : 0,
-                  transition: "opacity 0.7s cubic-bezier(0.16,1,0.3,1) 0.65s",
-                }}
-              >
-                <div className="flex -space-x-2.5">
-                  {["A","M","S","D"].map((i) => (
-                    <div key={i} className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-accent border-2 border-background flex items-center justify-center text-white text-[10px] font-black">
-                      {i}
-                    </div>
-                  ))}
-                </div>
-                <div>
-                  <div className="flex items-center gap-1 mb-0.5">
-                    {[1,2,3,4,5].map(s => <Star key={s} className="h-3 w-3 fill-amber-400 text-amber-400" />)}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground font-semibold">Trusted by 28,000+ patients</p>
-                </div>
+              <div className="flex flex-col">
+                <div className="flex gap-0.5"><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><Star className="h-3 w-3 fill-amber-400 text-amber-400" /><Star className="h-3 w-3 fill-amber-400 text-amber-400" /></div>
+                <p className="text-[11px] font-bold text-slate-500">Trusted by 28,000+ patients</p>
               </div>
             </div>
+          </motion.div>
 
-            {/* Right — Hero Visual */}
-            <div
-              className="relative hidden lg:block"
-              style={{
-                opacity: heroLoaded ? 1 : 0,
-                transform: heroLoaded ? "none" : "translateX(32px)",
-                transition: "all 0.9s cubic-bezier(0.16,1,0.3,1) 0.3s",
-              }}
-            >
-              <div className="relative h-[560px]">
-                {/* Main image card */}
-                <div className="absolute inset-0 rounded-[32px] overflow-hidden border border-border/60 shadow-2xl" style={{ boxShadow: "0 40px 100px -20px rgba(11,110,114,0.25)" }}>
-                  <Image
-                    src="/brand/clinic.jpeg"
-                    alt="Happy Optics Clinic Interior"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                </div>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="relative aspect-[4/3] rounded-[40px] overflow-hidden shadow-2xl shadow-slate-900/10">
+              <Image 
+                src="/brand/clinic.jpeg" 
+                alt="Happy Optics Clinic" 
+                fill 
+                className="object-cover"
+                priority 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent" />
+            </div>
+            
+            {/* Floating Badges based on screenshot */}
+            <div className="absolute -top-6 -left-6 glass-premium px-6 py-4 rounded-3xl shadow-xl border border-white/40 flex items-center gap-4">
+               <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                 <Activity className="h-5 w-5" />
+               </div>
+               <div>
+                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Today's Appointments</p>
+                 <p className="text-lg font-black text-slate-900">24 Patients</p>
+               </div>
+            </div>
 
-                {/* Floating stat card #1 */}
-                <div className="absolute -left-8 top-10 glass-panel p-4 shadow-xl border border-border/40 rounded-2xl" style={{ animation: "float 6s ease-in-out infinite" }}>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center">
-                      <Activity className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Today&apos;s Appointments</p>
-                      <p className="text-xl font-black gradient-text">24 Patients</p>
-                    </div>
-                  </div>
-                </div>
+            <div className="absolute -bottom-6 right-6 glass-premium px-6 py-4 rounded-3xl shadow-xl border border-white/40 flex items-center gap-4">
+               <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center text-success">
+                 <Star className="h-5 w-5 fill-success" />
+               </div>
+               <div>
+                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Patient Rating</p>
+                 <p className="text-lg font-black text-slate-900">4.98 / 5.0</p>
+               </div>
+            </div>
 
-                {/* Floating stat card #2 */}
-                <div className="absolute -right-8 bottom-16 glass-panel p-4 shadow-xl border border-border/40 rounded-2xl" style={{ animation: "float 8s ease-in-out infinite 2s" }}>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-success-light/60 text-success flex items-center justify-center">
-                      <Star className="h-5 w-5 fill-current" />
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Patient Rating</p>
-                      <p className="text-xl font-black text-foreground">4.98 / 5.0</p>
-                    </div>
-                  </div>
-                </div>
+            <div className="absolute bottom-10 left-10 py-2 px-4 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-[.2em] flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+              All 4 Branches Open
+            </div>
+          </motion.div>
+        </div>
+      </section>
 
-                {/* Badge bottom-left */}
-                <div className="absolute left-6 bottom-6 flex items-center gap-2 bg-black/70 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/10">
-                  <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                  <span className="text-white text-[10px] font-bold uppercase tracking-widest">All 4 Branches Open</span>
-                </div>
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* VISION STUDIO — Cinematic 3D Eyewear Section                       */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-32 relative overflow-hidden bg-slate-950 text-white">
+        <div className="absolute inset-0 neural-grid opacity-10" />
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-20 items-center relative z-10">
+          <Reveal direction="left">
+            <div className="space-y-8">
+              <div>
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-black uppercase tracking-[0.2em] mb-6">
+                  <Zap className="h-3 w-3" />
+                  Elite Engineering
+                </span>
+                <h2 className="text-5xl lg:text-7xl font-black tracking-tighter leading-[0.95]">
+                  Experience<br />
+                  <span className="gradient-text glow-text-teal">Precision</span><br />
+                  Vision.
+                </h2>
               </div>
+              <p className="text-xl text-slate-400 leading-relaxed font-medium max-w-lg">
+                Our H-Series frames represent the pinnacle of optical tech. Engineered for comfort, designed for clarity, and visualized in 3D precision.
+              </p>
+              <div className="flex gap-5 pt-4">
+                <Link href="/try-on" className="group h-16 px-10 rounded-2xl border border-white/10 glass-premium text-white flex items-center justify-center font-black text-xs tracking-widest hover:bg-white/5 transition-all">
+                  Open 360 Visualizer
+                  <ArrowRight className="h-4 w-4 ml-3 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+          
+          <div className="relative h-[600px] flex items-center justify-center">
+            <div className="absolute inset-0 bg-primary/20 blur-[120px] rounded-full animate-pulse" />
+            <div className="w-full h-full scale-110">
+              <Eyewear3D />
             </div>
           </div>
         </div>
@@ -432,7 +393,7 @@ export default function HomePage() {
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {services.map((s, i) => (
               <Reveal key={i} delay={i * 70} direction="up">
-                <div className="premium-card gradient-border group p-7 h-full flex flex-col">
+                <div className="premium-card lens-reflection gradient-border group p-7 h-full flex flex-col glass-premium">
                   <div className="flex items-start justify-between mb-6">
                     <div className="h-12 w-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <s.icon className="h-5.5 w-5.5" />
@@ -491,6 +452,92 @@ export default function HomePage() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* AI TRY-ON STUDIO — Cinematic Teaser                               */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-32 relative overflow-hidden bg-[#080c16] text-white">
+        <div className="absolute inset-0 neural-grid opacity-20" />
+        <div className="absolute top-0 right-0 h-[800px] w-[800px] rounded-full bg-primary/20 blur-[160px] pointer-events-none animate-pulse" />
+        
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-20 items-center">
+            <Reveal direction="left">
+              <div className="space-y-8">
+                <div>
+                  <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-primary-light text-[10px] font-black uppercase tracking-[0.2em] mb-6">
+                    <Scan className="h-3 w-3" />
+                    Next-Gen Experience
+                  </span>
+                  <h2 className="text-5xl lg:text-7xl font-black tracking-[-0.04em] leading-[0.95]">
+                    Virtual<br />
+                    <span className="gradient-text glow-text-teal">Try-On</span> Studio.
+                  </h2>
+                </div>
+                <p className="text-xl text-white/60 leading-relaxed font-medium max-w-lg">
+                  See yourself in your perfect pair instantly. Our AI-powered virtual try-on uses high-precision depth mapping to find the ideal frames for your face.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-6">
+                  <Link 
+                    href="/try-on"
+                    className="group inline-flex items-center justify-center gap-3 h-16 px-10 rounded-2xl bg-white text-black font-black text-sm tracking-widest hover:bg-white/90 transition-all duration-300 transform hover:-translate-y-1"
+                  >
+                    Open Studio
+                    <Box className="h-4 w-4" />
+                  </Link>
+                  <div className="flex items-center gap-4 py-2">
+                    <div className="flex -space-x-3">
+                      {[1,2,3].map(i => (
+                        <div key={i} className="h-10 w-10 rounded-full border-2 border-[#080c16] bg-white/10 backdrop-blur-md flex items-center justify-center">
+                          <Image src={`/brand/avatar-${i}.png`} alt="User" width={40} height={40} className="rounded-full opacity-60" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                          <Users className="h-4 w-4 text-white/40" />
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[11px] font-bold text-white/40 uppercase tracking-widest leading-none">
+                      Join 5,000+ users <br />
+                      Monthly try-ons
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal direction="right" delay={200}>
+              <div className="relative aspect-square lg:aspect-video rounded-[40px] overflow-hidden border border-white/10 shadow-2xl bg-gradient-to-br from-white/5 to-transparent backdrop-blur-2xl group">
+                <div className="absolute inset-0 flex items-center justify-center">
+                   {/* Cinematic Scan Line */}
+                   <div className="absolute h-[2px] w-full bg-primary/40 shadow-[0_0_20px_var(--primary)] top-0 animate-[neural-pulse_3s_linear_infinite]" />
+                   <div className="space-y-6 text-center">
+                      <div className="relative inline-block">
+                        <Monitor className="h-24 w-24 text-white/10" />
+                        <motion.div 
+                          animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.1, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                          className="absolute inset-0 flex items-center justify-center"
+                        >
+                          <Scan className="h-12 w-12 text-primary" />
+                        </motion.div>
+                      </div>
+                      <p className="text-xs font-black uppercase tracking-[0.3em] text-white/40">Calibrating AR Engine...</p>
+                   </div>
+                </div>
+                
+                {/* Floating tooltips */}
+                <div className="absolute top-10 right-10 glass-premium p-4 rounded-2xl shadow-xl border border-white/10 animate-float">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-primary/20 flex items-center justify-center">
+                      <Cpu className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary-light">Depth Mapping</span>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>

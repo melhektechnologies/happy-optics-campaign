@@ -21,9 +21,12 @@ import {
   Clock,
   ExternalLink,
   Sparkles,
-  Zap,
-  Target,
   ChevronRight,
+  Scan,
+  Monitor,
+  Cpu,
+  Target,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -311,11 +314,21 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="hidden lg:flex items-center gap-4 px-5 py-2 rounded-2xl bg-white/40 dark:bg-black/20 backdrop-blur-md border border-white/40 dark:border-white/5 mr-4 divide-x divide-border/40">
+                <div className="flex items-center gap-2">
+                   <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                   <span className="text-[10px] font-black uppercase tracking-widest text-success/80">Live Sync</span>
+                </div>
+                <div className="pl-4 flex items-center gap-2">
+                   <Monitor className="h-3.5 w-3.5 text-muted-foreground" />
+                   <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">Node 04-Bole</span>
+                </div>
+            </div>
             {isManager && (
               <Button asChild variant="outline" size="sm" className="bg-card/60 backdrop-blur-sm border-border/60 shadow-sm">
                 <Link href="/">
                   <Home className="h-3.5 w-3.5 mr-2" />
-                  Live Site
+                  Studio
                 </Link>
               </Button>
             )}

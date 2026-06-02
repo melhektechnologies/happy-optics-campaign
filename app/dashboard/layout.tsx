@@ -22,10 +22,13 @@ import {
   HelpCircle,
   Zap,
   Command,
+  Plus,
+  ArrowUpRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "@/components/command-palette";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface NavItem {
   href: string;
@@ -199,44 +202,55 @@ export default function DashboardLayout({
                   <div className="h-px bg-border/30 mx-2 my-3" />
                 )}
                 <nav className="space-y-0.5">
-                  {group.items.map((item) => {
+                  {group.items.map((item, idx) => {
                     const Icon = item.icon;
                     const isActive = pathname === item.href;
                     return (
-                      <Link
+                      <motion.div
                         key={item.href}
-                        href={item.href}
-                        onClick={() => setSidebarOpen(false)}
-                        className={cn(
-                          "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 outline-none",
-                          isActive
-                            ? "sidebar-active text-primary"
-                            : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
-                          isCollapsed && "justify-center px-0"
-                        )}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 + groupIdx * 0.1 }}
                       >
-                        {isActive && <div className="nav-active-bar" />}
-                        <Icon className={cn(
-                          "shrink-0 transition-all duration-200",
-                          isCollapsed ? "h-5 w-5" : "h-[17px] w-[17px]",
-                          isActive ? "text-primary" : "group-hover:scale-110"
-                        )} />
-                        {!isCollapsed && (
-                          <span className="truncate">{item.label}</span>
-                        )}
-                        {item.badge && !isCollapsed && (
-                          <span className="ml-auto text-[9px] font-black bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
-                            {item.badge}
-                          </span>
-                        )}
-                        
-                        {/* Tooltip when collapsed */}
-                        {isCollapsed && (
-                          <div className="tooltip">
-                            {item.label}
-                          </div>
-                        )}
-                      </Link>
+                        <Link
+                          href={item.href}
+                          onClick={() => setSidebarOpen(false)}
+                          className={cn(
+                            "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 outline-none",
+                            isActive
+                              ? "sidebar-active text-primary shadow-sm"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+                            isCollapsed && "justify-center px-0"
+                          )}
+                        >
+                          {isActive && (
+                            <motion.div 
+                              layoutId="nav-active"
+                              className="nav-active-bar" 
+                            />
+                          )}
+                          <Icon className={cn(
+                            "shrink-0 transition-all duration-200",
+                            isCollapsed ? "h-5 w-5" : "h-[17px] w-[17px]",
+                            isActive ? "text-primary" : "group-hover:scale-110"
+                          )} />
+                          {!isCollapsed && (
+                            <span className="truncate">{item.label}</span>
+                          )}
+                          {item.badge && !isCollapsed && (
+                            <span className="ml-auto text-[9px] font-black bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">
+                              {item.badge}
+                            </span>
+                          )}
+                          
+                          {/* Tooltip when collapsed */}
+                          {isCollapsed && (
+                            <div className="tooltip">
+                              {item.label}
+                            </div>
+                          )}
+                        </Link>
+                      </motion.div>
                     );
                   })}
                 </nav>
