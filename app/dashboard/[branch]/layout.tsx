@@ -90,20 +90,15 @@ export default function BranchDashboardLayout({
       >
         <div className="flex h-full flex-col">
           {/* Logo & Title */}
-          <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-            <div className="relative h-8 w-8">
+          <div className="flex h-16 items-center px-6 border-b border-border">
+            <Link href="/" className="relative h-10 w-40">
               <Image
                 src="/brand/happy-optics-logo.png"
-                alt="Happy Optics Logo"
-                width={32}
-                height={32}
-                className="object-contain"
+                alt="Happy Optics"
+                fill
+                className="object-contain object-left"
               />
-            </div>
-            <div>
-              <h1 className="text-sm font-bold">Happy Optics</h1>
-              <p className="text-xs text-muted-foreground">{userBranch}</p>
-            </div>
+            </Link>
           </div>
 
           {/* Navigation */}

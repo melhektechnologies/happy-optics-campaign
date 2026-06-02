@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Eye, EyeOff, Lock, User, Crown, ArrowLeft, Building2 } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, User, Crown, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 
 export default function StaffLoginPage() {
   const [email, setEmail] = useState("");
@@ -51,8 +52,13 @@ export default function StaffLoginPage() {
         <div className="absolute inset-0 neural-grid opacity-20" />
         <div className="relative z-10 w-full max-w-md p-12 text-center stagger">
           <div className="inline-flex items-center justify-center p-4 rounded-3xl bg-white shadow-xl border border-border/60 mb-8 mx-auto group">
-             <div className="h-16 w-16 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-500">
-                <Building2 className="h-8 w-8 text-white" />
+             <div className="relative h-12 w-48 transition-transform duration-500 group-hover:scale-105">
+                <Image
+                  src="/brand/happy-optics-logo.png"
+                  alt="Happy Optics"
+                  fill
+                  className="object-contain"
+                />
              </div>
           </div>
           <h2 className="text-3xl font-black text-foreground tracking-tight mb-4">Happy Optics Network</h2>

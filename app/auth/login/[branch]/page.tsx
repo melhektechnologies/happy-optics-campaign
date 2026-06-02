@@ -117,14 +117,13 @@ export default function BranchLoginPage() {
             <div className="flex justify-center mb-6">
               <div className="relative group p-1 active:scale-95 transition-transform duration-300">
                 <div className="absolute inset-0 bg-primary/20 rounded-[22px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="relative h-16 w-16 bg-card rounded-[22px] border border-border/60 shadow-sm flex items-center justify-center p-2.5 overflow-hidden">
+                <div className="relative h-12 w-48 bg-card rounded-[22px] border border-border/60 shadow-sm flex items-center justify-center p-3 overflow-hidden">
                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
                    <Image
                     src="/brand/happy-optics-logo.png"
                     alt="Happy Optics"
-                    width={40}
-                    height={40}
-                    className="object-contain relative z-10 transition-transform duration-500 group-hover:scale-110"
+                    fill
+                    className="object-contain relative z-10 transition-transform duration-500 group-hover:scale-105"
                    />
                 </div>
               </div>

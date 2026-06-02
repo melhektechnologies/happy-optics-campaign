@@ -164,19 +164,24 @@ export default function DashboardLayout({
             <div className="absolute inset-0 bg-gradient-to-r from-primary/[0.04] to-transparent pointer-events-none" />
             
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="relative h-9 w-9 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform duration-300">
+              <div className={cn(
+                "relative transition-all duration-300",
+                isCollapsed ? "h-9 w-9 overflow-hidden rounded-xl" : "h-10 w-40"
+              )}>
                 <Image
                   src="/brand/happy-optics-logo.png"
-                  alt="Logo"
-                  width={22}
-                  height={22}
-                  className="object-contain"
+                  alt="Happy Optics"
+                  fill
+                  className={cn(
+                    "object-contain object-left transition-all duration-500",
+                    isCollapsed && "scale-[2.8] object-left"
+                  )}
+                  priority
                 />
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col select-none overflow-hidden">
-                  <span className="text-sm font-extrabold tracking-tight text-foreground leading-none">HAPPY OPTICS</span>
-                  <span className="text-[9px] font-bold text-primary mt-1 tracking-[0.18em] uppercase opacity-80">Console v2.0</span>
+                  <span className="text-[9px] font-bold text-primary mt-0.5 tracking-[0.18em] uppercase opacity-80">Console v2.0</span>
                 </div>
               )}
             </Link>
