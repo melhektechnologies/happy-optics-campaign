@@ -237,6 +237,11 @@ body {
   to   { opacity: 1; max-height: 500px; transform: translateY(0); }
 }
 
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 /* ─── Utility Classes ─── */
 
 /* Page entry animation */
@@ -556,4 +561,15 @@ body {
     color-mix(in srgb, var(--accent) 6%, transparent)
   );
   border:1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+/* ─── Infinite Marquee ─── */
+.animate-marquee-infinite {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 40s linear infinite;
+  width: max-content;
+}
+.animate-marquee-infinite:hover {
+  animation-play-state: paused;
 }

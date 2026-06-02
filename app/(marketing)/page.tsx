@@ -177,6 +177,17 @@ const testimonials = [
   },
 ];
 
+const partnersList = [
+  { name: "Nib International Bank", initial: "N", color: "linear-gradient(135deg, #fbbf24, #f59e0b)" },
+  { name: "Awash Insurance", initial: "A", color: "linear-gradient(135deg, #3b82f6, #2563eb)" },
+  { name: "MIDROC Investment Group", initial: "M", color: "linear-gradient(135deg, #10b981, #059665)" },
+  { name: "Ethiopian Insurance Corp.", initial: "E", color: "linear-gradient(135deg, #0f172a, #334155)" },
+  { name: "Queen's", initial: "Q", color: "linear-gradient(135deg, #ef4444, #dc2626)" },
+  { name: "Wanza Furnishings Industry", initial: "W", color: "linear-gradient(135deg, #8b5cf6, #7c3aed)" },
+  { name: "Daylight Applied Technologies", initial: "D", color: "linear-gradient(135deg, #f97316, #ea580c)" },
+  { name: "Addis Ababa Women's Assc.", initial: "A", color: "linear-gradient(135deg, #14b8a6, #0d9488)" },
+];
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function HomePage() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
@@ -442,7 +453,47 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* PARTNERS & CLIENTS — Infinite Marquee                             */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      <section className="py-24 bg-card overflow-hidden border-y border-border/40">
+        <div className="max-w-[1380px] mx-auto px-6 lg:px-12 mb-12 text-center">
+          <Reveal direction="up" delay={0}>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tighter text-foreground">
+              Clients
+            </h2>
+            <p className="text-muted-foreground mt-4 font-semibold text-lg max-w-2xl mx-auto">
+              Introducing Our Potential Customers and Valued Collaboration Partners
+            </p>
+          </Reveal>
+        </div>
 
+        {/* Marquee Wrapper */}
+        <div className="relative flex overflow-hidden w-full group py-4">
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-card to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-card to-transparent z-10 pointer-events-none" />
+          
+          <div className="animate-marquee-infinite flex gap-12 sm:gap-20 items-center">
+            {/* Map twice for seamless infinite loop */}
+            {[...partnersList, ...partnersList].map((p, idx) => (
+              <div
+                key={idx}
+                className="flex items-center gap-4 grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300 transform hover:scale-105 cursor-default shrink-0"
+              >
+                <div 
+                  className="h-14 w-14 rounded-2xl flex items-center justify-center font-black text-white text-2xl shadow-md border border-white/20 shrink-0" 
+                  style={{ background: p.color }}
+                >
+                  {p.initial}
+                </div>
+                <span className="text-xl font-black text-foreground whitespace-nowrap tracking-tight">
+                  {p.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* WHY CHOOSE US — 3-column feature matrix                           */}
