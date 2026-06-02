@@ -168,12 +168,7 @@ const testimonials = [
     role: "Long-term Patient",
     rating: 5,
   },
-  {
-    quote: "As a Unity student, the free eye check was a game changer. The examination was thorough and I'm very satisfied.",
-    author: "Sara M.",
-    role: "Unity University Student",
-    rating: 5,
-  },
+
   {
     quote: "World-class service right here in Addis! The progressive lenses have completely changed how I work.",
     author: "Dawit H.",
@@ -447,62 +442,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* UNITY CAMPAIGN — Full-bleed premium banner                        */}
-      {/* ═══════════════════════════════════════════════════════════════════ */}
-      <section className="py-8 px-6 lg:px-12">
-        <div className="max-w-[1380px] mx-auto">
-          <Reveal direction="up">
-            <div className="page-banner overflow-hidden rounded-[32px] relative">
-              <div className="absolute inset-0 neural-grid opacity-30" />
-              <div className="relative z-10 grid lg:grid-cols-2 gap-10 items-center p-8 lg:p-12">
-                <div className="space-y-5">
-                  <span className="badge-primary">
-                    <Zap className="h-2.5 w-2.5" />
-                    Unity University Campaign
-                  </span>
-                  <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-foreground">
-                    Free Eye Check<br />
-                    <span className="gradient-text">for Unity Students</span>
-                  </h2>
-                  <p className="text-muted-foreground leading-relaxed max-w-md">
-                    Unity University students receive a complimentary comprehensive eye examination. Book your appointment today — take the first step towards better vision, at zero cost.
-                  </p>
-                  <div className="flex gap-4">
-                    <Link
-                      href="/unity"
-                      className="group inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-primary text-white font-bold text-sm shadow-md glow-primary hover:bg-primary-hover transition-all"
-                    >
-                      Claim Free Exam
-                      <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
-                    </Link>
-                    <Link
-                      href="/book"
-                      className="inline-flex items-center gap-2 h-12 px-6 rounded-xl border border-border bg-card/60 text-foreground font-bold text-sm hover:border-primary/30 transition-all"
-                    >
-                      Book Appointment
-                    </Link>
-                  </div>
-                </div>
-                <div className="flex items-center justify-center lg:justify-end">
-                  <div className="relative">
-                    <div className="h-36 w-36 rounded-full bg-primary/15 border border-primary/20 flex items-center justify-center" style={{ animation: "glow-pulse 3s ease-in-out infinite" }}>
-                      <CheckCircle2 className="h-16 w-16 text-primary" />
-                    </div>
-                    <div className="absolute -top-4 -right-4 h-16 w-16 rounded-full bg-accent/20 border border-accent/20 flex items-center justify-center">
-                      <Star className="h-7 w-7 text-accent fill-current" />
-                    </div>
-                    <div className="absolute -bottom-4 -left-4 glass-panel px-4 py-2 rounded-xl text-center">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Offer Valid</p>
-                      <p className="text-sm font-black text-primary">2026</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* WHY CHOOSE US — 3-column feature matrix                           */}
