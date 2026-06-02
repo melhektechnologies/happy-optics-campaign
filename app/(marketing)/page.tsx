@@ -648,20 +648,23 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {branches.map((b, i) => (
               <Reveal key={i} delay={i * 80} direction="up">
-                <div className="premium-card gradient-border group p-6 h-full flex flex-col">
-                  <div className="flex items-center gap-3 mb-5">
+                <Link 
+                  href={`/book?branch=${encodeURIComponent(b.name)}`}
+                  className="premium-card gradient-border group p-6 h-full flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-primary block"
+                >
+                  <div className="flex items-center gap-3 mb-5 relative z-10">
                     <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                       <MapPin className="h-4.5 w-4.5" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-foreground leading-tight">{b.name}</h3>
+                      <h3 className="text-sm font-black text-foreground leading-tight group-hover:text-primary transition-colors">{b.name}</h3>
                       <div className="flex items-center gap-1 mt-0.5">
                         <div className="h-1.5 w-1.5 rounded-full bg-success" />
                         <span className="text-[9px] font-bold text-success uppercase tracking-wider">Open</span>
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-3 flex-1">
+                  <div className="space-y-3 flex-1 relative z-10">
                     <div className="flex items-start gap-2.5">
                       <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
                       <p className="text-xs text-muted-foreground">{b.area}</p>
@@ -675,14 +678,11 @@ export default function HomePage() {
                       <p className="text-xs text-muted-foreground">{b.hours}</p>
                     </div>
                   </div>
-                  <Link
-                    href="/book"
-                    className="mt-5 flex items-center justify-between text-[11px] font-bold text-primary pt-4 border-t border-border/40 group-hover:gap-2 transition-all"
-                  >
+                  <div className="mt-5 flex items-center justify-between text-[11px] font-bold text-primary pt-4 border-t border-border/40 group-hover:gap-2 transition-all relative z-10">
                     Book at this branch
                     <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
+                  </div>
+                </Link>
               </Reveal>
             ))}
           </div>
